@@ -1,0 +1,137 @@
+[
+  {
+    "id": "barber-any",
+    "name": "Cualquier barbero disponible",
+    "role": "Asignación automática",
+    "specialties": [
+      "Cualquier especialidad",
+      "Turno más rápido"
+    ],
+    "specialty": "Asignación más rápida",
+    "availableDays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "allowedServiceIds": [
+      "corte",
+      "corte_barba",
+      "barba",
+      "color"
+    ],
+    "active": true
+  },
+  {
+    "id": "barber-1",
+    "name": "Alejandro \"Alex\" Silva",
+    "role": "Master Barber & Fundador",
+    "specialties": [
+      "Degradés & Fades extremos",
+      "Navaja tradicional",
+      "Freestyle lines"
+    ],
+    "specialty": "Especialista en degradés & navaja",
+    "bio": "Más de 10 años de trayectoria en el rubro, capacitador nacional y apasionado por los fades milimétricos y la navaja tradicional.",
+    "phone": "+54 9 11 4455-6677",
+    "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    "availableDays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "allowedServiceIds": [
+      "corte",
+      "corte_barba",
+      "barba"
+    ],
+    "active": true
+  },
+  {
+    "id": "barber-2",
+    "name": "Martín Morales",
+    "role": "Barbero Senior & Grooming Specialist",
+    "specialties": [
+      "Diseño y perfilado de Barba",
+      "Cortes clásicos a tijera",
+      "Ritual de toalla caliente"
+    ],
+    "specialty": "Master Barber & Diseños de Barba",
+    "bio": "Especialista en barbas de gran volumen, perfilados simétricos y cortes ejecutivos clásicos a tijera pulida.",
+    "phone": "+54 9 11 3322-1199",
+    "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    "availableDays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "allowedServiceIds": [
+      "corte",
+      "corte_barba",
+      "barba"
+    ],
+    "active": true
+  },
+  {
+    "id": "barber-3",
+    "name": "Camila Rostagno",
+    "role": "Colorista & Estilista Integral",
+    "specialties": [
+      "Colorimetría & Platinados",
+      "Reflejos & Balayage",
+      "Corte texturizado"
+    ],
+    "specialty": "Especialista en Colorimetría & Estilismo",
+    "bio": "Técnica experta en decoloración segura, grises metálicos, platinados sin daño capilar y cortes unisex modernos.",
+    "phone": "+54 9 11 8899-0011",
+    "avatarUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+    "availableDays": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "allowedServiceIds": [
+      "corte",
+      "corte_barba",
+      "color"
+    ],
+    "active": true
+  },
+  {
+    "id": "barber-4",
+    "name": "Nicolás \"Nico\" Benítez",
+    "role": "Barbero & Stylist Jr.",
+    "specialties": [
+      "Fade rápido",
+      "Mantenimiento de barba",
+      "Peinados modernos"
+    ],
+    "specialty": "Barbero dinámico & Texturizado",
+    "bio": "Joven promesa con técnicas modernas de texturizado, peinados con cera mate y atención veloz y precisa.",
+    "phone": "+54 9 11 7766-5544",
+    "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    "availableDays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "allowedServiceIds": [
+      "corte",
+      "barba",
+      "corte_barba"
+    ],
+    "active": true
+  }
+]

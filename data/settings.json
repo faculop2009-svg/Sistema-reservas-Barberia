@@ -1,0 +1,24 @@
+{
+  "shopName": "La Docta Barberia",
+  "tagline": "Estilo clásico y técnicas modernas de barbería y estilismo",
+  "phone": "+54 9 3516329399",
+  "address": "Av. Talleres, José Patiño y, Córdoba",
+  "openingHour": "09:00",
+  "closingHour": "20:00",
+  "slotDurationMinutes": 30,
+  "lunchBreakStart": "13:30",
+  "lunchBreakEnd": "14:30",
+  "openDays": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "autoRemindHoursBefore": 24,
+  "adminPin": "1234",
+  "currencySymbol": "$",
+  "instagram": "@ladoctabarberia",
+  "reminderTemplate": "💈 *Recordatorio de Turno en {shopName}*\n\nHola *{clientName}*, te recordamos tu cita agendada:\n\n✂️ *Servicio:* {serviceName}\n📅 *Fecha:* {dateFormatted}\n⏰ *Hora:* {time} hs\n💈 *Profesional:* {barberName}\n⏳ *Duración:* {duration} min\n💵 *Total:* ${price}\n📍 *Lugar:* {address}\n\n*Código de reserva:* {code}\n\n¿Necesitas reprogramar o cancelar? Por favor avísanos con anticipación respondiendo a este mensaje. ¡Te esperamos!"
+}

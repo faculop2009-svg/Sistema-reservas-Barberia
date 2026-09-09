@@ -1,0 +1,78 @@
+[
+  {
+    "id": "corte",
+    "name": "Corte de Cabello",
+    "category": "Corte & Peinado",
+    "durationMinutes": 30,
+    "price": 20000,
+    "description": "Corte clásico, degradé moderno o tijera personalizada con asesoría visagista, lavado revitalizante y peinado con producto premium.",
+    "includes": [
+      "Diagnóstico de visagismo y asesoramiento de estilo según facciones",
+      "Corte a tijera o degradé con máquina (Low, Mid, High o Skin Fade)",
+      "Perfilado y rasurado fino de patillas y contorno de cuello con navaja",
+      "Lavado capilar relajante con shampoo acondicionador refrescante",
+      "Secado y peinado final con pomada al agua, cera mate o spray fijador"
+    ],
+    "imageUrl": "/images/service_haircut.jpg",
+    "iconName": "Scissors",
+    "popular": true
+  },
+  {
+    "id": "corte_barba",
+    "name": "Corte + Barba (Combo Completo)",
+    "category": "Combo Especial",
+    "durationMinutes": 50,
+    "price": 25000,
+    "description": "La experiencia completa de barbería tradicional: corte de cabello personalizado, toalla caliente y ritual completo de afeitado o perfilado de barba.",
+    "includes": [
+      "Corte de cabello completo personalizado con máquina y tijera",
+      "Rebaje simétrico de barba y degradé de conexión con las patillas",
+      "Aplicación de toalla caliente con esencias aromáticas para apertura de poros",
+      "Afeitado y delineado de contornos a navaja con gel de precisión",
+      "Lavado capilar y facial tonificante",
+      "Aplicación de bálsamo y aceite hidratante para barba con masaje facial",
+      "Peinado y finalizado con fijador premium"
+    ],
+    "imageUrl": "/images/service_combo.jpg",
+    "iconName": "Sparkles",
+    "popular": true
+  },
+  {
+    "id": "barba",
+    "name": "Arreglo & Perfilado de Barba",
+    "category": "Cuidado Facial",
+    "durationMinutes": 25,
+    "price": 12500,
+    "description": "Ritual tradicional de afeitado o rebaje de barba: alineación geométrica, toalla caliente perfumada, navaja libre y aceites botánicos.",
+    "includes": [
+      "Rebaje simétrico de volumen y longitud con máquina clipper",
+      "Toalla húmeda caliente con eucalipto y mentol para ablandar el vello",
+      "Espuma o gel lubricante de afeitado sin irritación",
+      "Delineado de mejillas y cuello con navaja tradicional de filo nuevo",
+      "Toalla fría para sellado de poros y descongestión",
+      "Masaje facial con loción aftershave y aceite nutritivo para barba"
+    ],
+    "imageUrl": "/images/service_beard.jpg",
+    "iconName": "Flame",
+    "popular": false
+  },
+  {
+    "id": "color",
+    "name": "Coloración & Tintura",
+    "category": "Tratamientos & Color",
+    "durationMinutes": 75,
+    "price": 28000,
+    "description": "Colorimetría profesional integral: platinados, rubios globales, canas naturales, mechas claritos o tonos fantasía con protección capilar.",
+    "includes": [
+      "Evaluación del tono base, porosidad y salud de la fibra capilar",
+      "Elección de tono: platinado ceniza, blanco polar, reflejos o cobertura de canas",
+      "Decoloración controlada con plex protector para evitar quiebre",
+      "Matización y tonalización con pigmentos profesionales sin amoníaco agresivo",
+      "Lavado con shampoo reconstructor y baño de crema nutritivo",
+      "Secado y peinado final con termo-protector"
+    ],
+    "imageUrl": "/images/service_color.jpg",
+    "iconName": "Palette",
+    "popular": false
+  }
+]
