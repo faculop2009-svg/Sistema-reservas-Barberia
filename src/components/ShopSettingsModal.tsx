@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Save, RotateCcw, Check, AlertCircle, FolderDown } from 'lucide-react';
+import { Settings, Save, RotateCcw, Check, AlertCircle, FolderDown, Lock, KeyRound } from 'lucide-react';
 import { BusinessSettings } from '../types.ts';
 import { DEFAULT_SETTINGS } from '../data/defaults.ts';
 
@@ -25,6 +25,9 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
     setError(null);
     try {
       await onSave(formData);
+      if (formData.adminPin) {
+        sessionStorage.setItem('barber_admin_pin', formData.adminPin.trim());
+      }
       setSaved(true);
       setTimeout(() => {
         setSaved(false);
@@ -229,6 +232,51 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
               onChange={(e) => setFormData({ ...formData, reminderTemplate: e.target.value })}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 font-mono text-xs focus:outline-none focus:border-amber-500 leading-relaxed"
             />
+          </div>
+
+          {/* Security & Access PIN Section */}
+          <div className="p-4 bg-zinc-950 border border-amber-500/30 rounded-xl space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-zinc-100 flex items-center gap-2">
+                  <span>PIN Secreto de Administrador</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    Seguridad Privada
+                  </span>
+                </h4>
+                <p className="text-[11px] text-zinc-400">
+                  Protege tu panel para que solo tú y tus barberos puedan ver la agenda de clientes y editar precios.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-zinc-300 font-semibold mb-1">
+                  Tu PIN de Acceso (4 a 8 caracteres)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    maxLength={8}
+                    value={formData.adminPin || ''}
+                    onChange={(e) => setFormData({ ...formData, adminPin: e.target.value.trim() })}
+                    placeholder="Ej: 1234"
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg py-2 pl-8 pr-3 font-mono text-sm tracking-widest text-amber-400 font-bold focus:outline-none focus:border-amber-500"
+                  />
+                  <KeyRound className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+              <div className="text-[11px] text-zinc-400 flex items-center bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800">
+                <span>
+                  🔒 <strong>Privado:</strong> Los clientes que visiten la web <strong>nunca podrán ver este PIN ni entrar a tu panel</strong> sin saber este código.
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Export Code for GitHub & Render */}

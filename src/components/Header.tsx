@@ -9,7 +9,7 @@ import {
   BookOpen,
   CalendarDays,
   Sparkles,
-  Pencil,
+  Lock,
 } from 'lucide-react';
 import { BusinessSettings } from '../types.ts';
 
@@ -33,54 +33,35 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-30 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Top business info bar */}
+        {/* Top business info bar (Informational only for clients) */}
         <div className="hidden sm:flex items-center justify-between py-2 border-b border-zinc-800/60 text-xs text-zinc-400">
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              id="header-edit-hours-btn"
-              onClick={onOpenSettings}
-              className="flex items-center gap-1.5 text-zinc-300 hover:text-amber-400 transition-colors group cursor-pointer text-left"
-              title="Haz clic para editar los horarios de atención"
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-1.5 text-zinc-300">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
               <span>Lun a Sáb: {settings.openingHour} - {settings.closingHour} hs</span>
-            </button>
-            <button
-              type="button"
-              id="header-edit-address-btn"
-              onClick={onOpenSettings}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors group cursor-pointer text-left"
-              title="Haz clic para editar la dirección de la barbería"
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors"
+              title="Ver ubicación en el mapa"
             >
-              <MapPin className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-500 group-hover:scale-110 transition-transform" />
+              <MapPin className="w-3.5 h-3.5 text-zinc-500" />
               <span>{settings.address}</span>
-            </button>
+            </a>
           </div>
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              id="header-edit-phone-btn"
-              onClick={onOpenSettings}
-              className="flex items-center gap-1 text-zinc-300 hover:text-amber-400 transition-colors group cursor-pointer"
-              title="Haz clic para editar el teléfono de WhatsApp"
+          <div className="flex items-center gap-3">
+            <a
+              href={`https://wa.me/${settings.phone.replace(/[^0-9]/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-zinc-300 hover:text-emerald-400 transition-colors"
+              title="Contactar por WhatsApp"
             >
-              <Phone className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
+              <Phone className="w-3.5 h-3.5 text-emerald-400" />
               <span>{settings.phone}</span>
-            </button>
-
-            {onOpenSettings && (
-              <button
-                type="button"
-                id="header-direct-edit-settings-btn"
-                onClick={onOpenSettings}
-                className="px-2 py-0.5 rounded bg-zinc-800/80 hover:bg-amber-500/20 text-zinc-400 hover:text-amber-400 border border-zinc-700/60 hover:border-amber-500/30 text-[11px] font-semibold transition-all flex items-center gap-1 ml-1 cursor-pointer"
-                title="Editar horario, dirección o teléfono"
-              >
-                <Pencil className="w-2.5 h-2.5 text-amber-500" />
-                <span>Editar datos</span>
-              </button>
-            )}
+            </a>
           </div>
         </div>
 
@@ -169,17 +150,18 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="nav-btn-admin"
               onClick={() => setActiveView('admin')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 border ${
+              className={`px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 border ${
                 activeView === 'admin'
-                  ? 'bg-zinc-800 text-amber-400 border-amber-500/50 shadow-inner'
-                  : 'bg-zinc-900/80 text-zinc-300 border-zinc-700/60 hover:text-amber-400 hover:border-zinc-600'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/40 shadow-inner'
+                  : 'bg-zinc-900/60 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700'
               }`}
+              title="Acceso exclusivo para el barbero / dueño (requiere PIN)"
             >
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <span className="hidden sm:inline">Panel Barbería</span>
-              <span className="sm:hidden">Admin</span>
+              <Lock className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden sm:inline text-xs">Acceso Barbero</span>
+              <span className="sm:hidden text-xs">Staff</span>
               {pendingRemindersCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black animate-pulse">
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold animate-pulse">
                   {pendingRemindersCount}
                 </span>
               )}

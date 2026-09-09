@@ -160,11 +160,15 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
     };
 
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       if (editingBarber) {
         // Update
         const res = await fetch(`/api/barbers/${editingBarber.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-pin': adminPin,
+          },
           body: JSON.stringify(payload),
         });
         if (res.ok) {
@@ -179,7 +183,10 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
         // Create new
         const res = await fetch('/api/barbers', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-pin': adminPin,
+          },
           body: JSON.stringify(payload),
         });
         if (res.ok) {
@@ -203,7 +210,13 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
     if (!confirm(`¿Estás seguro de eliminar a ${barberName} del equipo?`)) return;
 
     try {
-      const res = await fetch(`/api/barbers/${id}`, { method: 'DELETE' });
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
+      const res = await fetch(`/api/barbers/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-admin-pin': adminPin,
+        },
+      });
       if (res.ok) {
         onBarbersChange(barbers.filter((b) => b.id !== id));
       }

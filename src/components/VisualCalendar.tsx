@@ -18,6 +18,11 @@ import {
   Info,
 } from 'lucide-react';
 import { Barber, BarberService, ScheduleSlot, CalendarBlock } from '../types.ts';
+import {
+  getClientAvailableSlotsForDate,
+  loadClientBlocks,
+  saveClientBlocks,
+} from '../utils/clientStorage.ts';
 
 interface VisualCalendarProps {
   mode?: 'client' | 'admin';
@@ -70,13 +75,28 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
     try {
       const res = await fetch(
         `/api/slots?date=${dateStr}&barberId=${barberIdStr}&serviceId=${serviceIdStr}`
-      );
-      if (res.ok) {
+      ).catch(() => null);
+      if (res && res.ok) {
         const data = await res.json();
         setSlotsData(data);
+      } else {
+        const fallback = getClientAvailableSlotsForDate(dateStr, serviceIdStr, barberIdStr, true);
+        setSlotsData({
+          date: fallback.date,
+          isDayBlocked: !!fallback.dayBlocked,
+          dayBlockReason: fallback.dayBlockReason,
+          slots: fallback.slots,
+        });
       }
     } catch (err) {
-      console.error('Error fetching slots:', err);
+      console.warn('Error fetching slots, using client local storage:', err);
+      const fallback = getClientAvailableSlotsForDate(dateStr, serviceIdStr, barberIdStr, true);
+      setSlotsData({
+        date: fallback.date,
+        isDayBlocked: !!fallback.dayBlocked,
+        dayBlockReason: fallback.dayBlockReason,
+        slots: fallback.slots,
+      });
     } finally {
       setLoadingSlots(false);
     }
@@ -157,9 +177,13 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
 
     setActionLoading(true);
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       const res = await fetch('/api/calendar/toggle-day', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': adminPin,
+        },
         body: JSON.stringify({
           date: selectedDate,
           barberId: selectedBarberId === 'barber-any' ? 'all' : selectedBarberId,
@@ -192,9 +216,13 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
 
     setActionLoading(true);
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       const res = await fetch('/api/calendar/toggle-slot', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': adminPin,
+        },
         body: JSON.stringify({
           date: selectedDate,
           time,

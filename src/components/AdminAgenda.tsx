@@ -26,6 +26,13 @@ import { Appointment, BusinessSettings, BarberService, Barber } from '../types.t
 import { StaffManagement } from './StaffManagement.tsx';
 import { VisualCalendar } from './VisualCalendar.tsx';
 import { ServicesCatalog } from './ServicesCatalog.tsx';
+import {
+  loadClientAppointments,
+  saveClientAppointments,
+  createClientAppointment,
+  buildClientWhatsAppUrl,
+  formatClientWhatsAppMessage,
+} from '../utils/clientStorage.ts';
 
 interface AdminAgendaProps {
   settings: BusinessSettings;
@@ -105,13 +112,47 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
         url += `?${params.toString()}`;
       }
 
-      const res = await fetch(url);
-      if (res.ok) {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
+      const res = await fetch(url, {
+        headers: { 'x-admin-pin': adminPin },
+      }).catch(() => null);
+      if (res && res.ok) {
         const data = await res.json();
         setAppointments(data);
+      } else {
+        // Client-side fallback for Vercel
+        let list = loadClientAppointments();
+        if (filterDate === 'today') {
+          list = list.filter((a) => a.date === todayStr);
+        } else if (filterDate === 'tomorrow') {
+          list = list.filter((a) => a.date === tomorrowStr);
+        } else if (filterDate !== 'all') {
+          list = list.filter((a) => a.date === filterDate);
+        }
+
+        if (filterStatus !== 'all') {
+          list = list.filter((a) => a.status === filterStatus);
+        }
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          list = list.filter(
+            (a) =>
+              a.clientName.toLowerCase().includes(q) ||
+              a.clientPhone.includes(q) ||
+              a.code.toLowerCase().includes(q) ||
+              a.serviceName.toLowerCase().includes(q) ||
+              a.barberName.toLowerCase().includes(q)
+          );
+        }
+
+        list.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+        setAppointments(list);
       }
     } catch (err) {
-      console.error('Error fetching appointments:', err);
+      console.warn('Error fetching appointments, using client local storage:', err);
+      let list = loadClientAppointments();
+      setAppointments(list);
     } finally {
       setLoading(false);
     }
@@ -123,21 +164,35 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
 
   const handleUpdateStatus = async (id: string, newStatus: 'confirmed' | 'completed' | 'cancelled') => {
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       const res = await fetch(`/api/appointments/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': adminPin,
+        },
         body: JSON.stringify({ status: newStatus }),
-      });
-      if (res.ok) {
+      }).catch(() => null);
+
+      if (res && res.ok) {
         const updated = await res.json();
         setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)));
-        const labels: Record<string, string> = {
-          completed: 'Turno marcado como completado',
-          cancelled: 'Turno cancelado',
-          confirmed: 'Turno reactivado como confirmado',
-        };
-        showToast(labels[newStatus] || 'Estado actualizado');
+      } else {
+        // Update client-side
+        const allApts = loadClientAppointments();
+        const target = allApts.find((a) => a.id === id);
+        if (target) {
+          target.status = newStatus;
+          saveClientAppointments(allApts);
+          setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+        }
       }
+      const labels: Record<string, string> = {
+        completed: 'Turno marcado como completado',
+        cancelled: 'Turno cancelado',
+        confirmed: 'Turno reactivado como confirmado',
+      };
+      showToast(labels[newStatus] || 'Estado actualizado');
     } catch (err) {
       console.error(err);
       showToast('Error al actualizar el estado');
@@ -147,12 +202,16 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
   const handleSendWhatsAppReminder = async (appointment: Appointment) => {
     setSendingReminderId(appointment.id);
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       const res = await fetch(`/api/appointments/${appointment.id}/reminder`, {
         method: 'POST',
-      });
-      if (res.ok) {
+        headers: {
+          'x-admin-pin': adminPin,
+        },
+      }).catch(() => null);
+
+      if (res && res.ok) {
         const data = await res.json();
-        // Update local appointment state
         setAppointments((prev) =>
           prev.map((a) =>
             a.id === appointment.id
@@ -164,10 +223,32 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
               : a
           )
         );
-
-        // Open WhatsApp Web / App
         window.open(data.whatsappUrl, '_blank');
         showToast(`Recordatorio WhatsApp listo y marcado como enviado a ${appointment.clientName}`);
+      } else {
+        // Client fallback
+        const allApts = loadClientAppointments();
+        const target = allApts.find((a) => a.id === appointment.id);
+        if (target) {
+          target.reminderStatus = 'sent';
+          target.reminderSentAt = new Date().toISOString();
+          saveClientAppointments(allApts);
+        }
+        setAppointments((prev) =>
+          prev.map((a) =>
+            a.id === appointment.id
+              ? {
+                  ...a,
+                  reminderStatus: 'sent',
+                  reminderSentAt: new Date().toISOString(),
+                }
+              : a
+          )
+        );
+        const msg = formatClientWhatsAppMessage(appointment, settings);
+        const waUrl = buildClientWhatsAppUrl(appointment.clientPhone, msg);
+        window.open(waUrl, '_blank');
+        showToast(`Recordatorio WhatsApp listo para enviar a ${appointment.clientName}`);
       }
     } catch (err) {
       console.error(err);
@@ -213,9 +294,9 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           time: manualTime,
           clientNotes: manualNotes,
         }),
-      });
+      }).catch(() => null);
 
-      if (res.ok) {
+      if (res && res.ok) {
         setShowManualModal(false);
         setManualClientName('');
         setManualClientPhone('');
@@ -223,8 +304,22 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
         showToast('Turno manual agendado correctamente');
         fetchAppointments();
       } else {
-        const errData = await res.json();
-        showToast(errData.error || 'Error al guardar el turno');
+        // Fallback to client appointment creation
+        createClientAppointment({
+          serviceId: manualServiceId,
+          barberId: manualBarberId,
+          date: manualDate,
+          time: manualTime,
+          clientName: manualClientName,
+          clientPhone: manualClientPhone,
+          clientNotes: manualNotes,
+        });
+        setShowManualModal(false);
+        setManualClientName('');
+        setManualClientPhone('');
+        setManualNotes('');
+        showToast('Turno manual agendado en memoria local');
+        fetchAppointments();
       }
     } catch (err) {
       console.error(err);

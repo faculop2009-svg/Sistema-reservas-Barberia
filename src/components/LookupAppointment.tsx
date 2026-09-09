@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Calendar, Clock, Scissors, MessageCircle, AlertCircle, Trash2, CheckCircle2, User, MapPin } from 'lucide-react';
 import { Appointment, BusinessSettings } from '../types.ts';
 import { downloadIcsCalendar } from '../utils/calendar.ts';
+import { loadClientAppointments, saveClientAppointments } from '../utils/clientStorage.ts';
 
 interface LookupAppointmentProps {
   settings: BusinessSettings;
@@ -32,8 +33,8 @@ export const LookupAppointment: React.FC<LookupAppointmentProps> = ({
       const trimmed = query.trim();
       // First try by code
       if (trimmed.toUpperCase().startsWith('BAR-') || trimmed.length <= 8) {
-        const res = await fetch(`/api/appointments/by-code/${trimmed}`);
-        if (res.ok) {
+        const res = await fetch(`/api/appointments/by-code/${trimmed}`).catch(() => null);
+        if (res && res.ok) {
           const data = await res.json();
           setAppointments([data.appointment]);
           setLoading(false);
@@ -42,16 +43,36 @@ export const LookupAppointment: React.FC<LookupAppointmentProps> = ({
       }
 
       // Search by phone or name
-      const res2 = await fetch(`/api/appointments?search=${encodeURIComponent(trimmed)}`);
-      if (res2.ok) {
+      const res2 = await fetch(`/api/appointments?search=${encodeURIComponent(trimmed)}`).catch(() => null);
+      if (res2 && res2.ok) {
         const list = await res2.json();
         setAppointments(list);
       } else {
-        setError('No se pudo realizar la búsqueda.');
+        // Local fallback search
+        const allApts = loadClientAppointments();
+        const q = trimmed.toLowerCase();
+        const filtered = allApts.filter(
+          (a) =>
+            a.code.toLowerCase().includes(q) ||
+            a.clientName.toLowerCase().includes(q) ||
+            a.clientPhone.includes(q)
+        );
+        setAppointments(filtered);
+        if (filtered.length === 0) {
+          setError('No encontramos reservas con ese código o teléfono.');
+        }
       }
     } catch (err) {
-      console.error(err);
-      setError('Error de conexión al buscar el turno.');
+      console.warn('Search fallback error:', err);
+      const allApts = loadClientAppointments();
+      const q = query.trim().toLowerCase();
+      const filtered = allApts.filter(
+        (a) =>
+          a.code.toLowerCase().includes(q) ||
+          a.clientName.toLowerCase().includes(q) ||
+          a.clientPhone.includes(q)
+      );
+      setAppointments(filtered);
     } finally {
       setLoading(false);
     }
@@ -63,15 +84,39 @@ export const LookupAppointment: React.FC<LookupAppointmentProps> = ({
     try {
       const res = await fetch(`/api/appointments/${id}`, {
         method: 'DELETE',
-      });
-      if (res.ok) {
+      }).catch(() => null);
+
+      if (res && res.ok) {
         setSuccessMsg('Tu turno ha sido cancelado con éxito.');
         setAppointments((prev) =>
           prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' } : a))
         );
+      } else {
+        // Client cancel fallback
+        const allApts = loadClientAppointments();
+        const target = allApts.find((a) => a.id === id);
+        if (target) {
+          target.status = 'cancelled';
+          saveClientAppointments(allApts);
+          setSuccessMsg('Tu turno ha sido cancelado con éxito.');
+          setAppointments((prev) =>
+            prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' } : a))
+          );
+        }
       }
     } catch {
-      setError('No se pudo cancelar el turno.');
+      const allApts = loadClientAppointments();
+      const target = allApts.find((a) => a.id === id);
+      if (target) {
+        target.status = 'cancelled';
+        saveClientAppointments(allApts);
+        setSuccessMsg('Tu turno ha sido cancelado con éxito.');
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' } : a))
+        );
+      } else {
+        setError('No se pudo cancelar el turno.');
+      }
     }
   };
 

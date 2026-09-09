@@ -65,13 +65,31 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
   });
 
   // -------------------------------------------------------------
+  // Admin Authentication Security Middleware
+  // -------------------------------------------------------------
+  const requireAdminAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const settings = loadSettings();
+    const validPin = (settings.adminPin || '1234').trim();
+    const providedPin = (
+      (req.headers['x-admin-pin'] as string) ||
+      (req.query.adminPin as string) ||
+      ''
+    ).trim();
+
+    if (!providedPin || providedPin !== validPin) {
+      return res.status(401).json({ error: 'Acceso no autorizado. Se requiere PIN de administrador válido.' });
+    }
+    next();
+  };
+
+  // -------------------------------------------------------------
   // Services Catalog
   // -------------------------------------------------------------
   app.get('/api/services', (req, res) => {
     res.json(loadServices());
   });
 
-  app.put('/api/services/:id', (req, res) => {
+  app.put('/api/services/:id', requireAdminAuth, (req, res) => {
     try {
       const updated = updateService(req.params.id, req.body);
       res.json(updated);
@@ -87,7 +105,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json(loadBarbers());
   });
 
-  app.post('/api/barbers', (req, res) => {
+  app.post('/api/barbers', requireAdminAuth, (req, res) => {
     try {
       const { name, role, specialties, bio, phone, avatarUrl, availableDays, allowedServiceIds } = req.body;
       if (!name || !role) {
@@ -110,7 +128,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }
   });
 
-  app.put('/api/barbers/:id', (req, res) => {
+  app.put('/api/barbers/:id', requireAdminAuth, (req, res) => {
     try {
       const updated = updateBarber(req.params.id, req.body);
       res.json(updated);
@@ -119,7 +137,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }
   });
 
-  app.delete('/api/barbers/:id', (req, res) => {
+  app.delete('/api/barbers/:id', requireAdminAuth, (req, res) => {
     try {
       deleteBarber(req.params.id);
       res.json({ message: 'Peluquero eliminado con éxito' });
@@ -135,7 +153,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json(loadCalendarBlocks());
   });
 
-  app.post('/api/calendar/toggle-slot', (req, res) => {
+  app.post('/api/calendar/toggle-slot', requireAdminAuth, (req, res) => {
     try {
       const { date, time, barberId = 'all', reason } = req.body;
       if (!date || !time) {
@@ -148,7 +166,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }
   });
 
-  app.post('/api/calendar/toggle-day', (req, res) => {
+  app.post('/api/calendar/toggle-day', requireAdminAuth, (req, res) => {
     try {
       const { date, barberId = 'all', reason } = req.body;
       if (!date) {
@@ -161,13 +179,19 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }
   });
 
-  // Business settings
+  // Business settings (Mask adminPin for public requests)
   app.get('/api/settings', (req, res) => {
     const settings = loadSettings();
-    res.json(settings);
+    const providedPin = ((req.headers['x-admin-pin'] as string) || '').trim();
+    if (providedPin && providedPin === (settings.adminPin || '1234').trim()) {
+      return res.json(settings);
+    }
+    // Mask sensitive PIN for clients
+    const { adminPin, ...publicSettings } = settings;
+    res.json(publicSettings);
   });
 
-  app.put('/api/settings', (req, res) => {
+  app.put('/api/settings', requireAdminAuth, (req, res) => {
     try {
       const updated = saveSettings(req.body);
       res.json(updated);
@@ -187,8 +211,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json(result);
   });
 
-  // Appointments listing & search
-  app.get('/api/appointments', (req, res) => {
+  // Appointments listing & search (Protected for barber/owner only)
+  app.get('/api/appointments', requireAdminAuth, (req, res) => {
     const { date, status, search, barberId } = req.query;
     let list = loadAppointments();
 
@@ -245,7 +269,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json({ appointment: found, whatsappUrl });
   });
 
-  // Create new appointment
+  // Create new appointment (Public - for clients booking)
   app.post('/api/appointments', (req, res) => {
     try {
       const payload: BookingPayload = req.body;
@@ -273,8 +297,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }
   });
 
-  // Update appointment (status, etc.)
-  app.patch('/api/appointments/:id', (req, res) => {
+  // Update appointment (status, etc. - Protected)
+  app.patch('/api/appointments/:id', requireAdminAuth, (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     const list = loadAppointments();
@@ -289,8 +313,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json(list[index]);
   });
 
-  // Delete/cancel appointment
-  app.delete('/api/appointments/:id', (req, res) => {
+  // Delete/cancel appointment (Protected)
+  app.delete('/api/appointments/:id', requireAdminAuth, (req, res) => {
     const { id } = req.params;
     let list = loadAppointments();
     const found = list.find((a) => a.id === id);
@@ -305,8 +329,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     res.json({ message: 'Turno cancelado con éxito', appointment: found });
   });
 
-  // WhatsApp Reminder Dispatch Endpoint
-  app.post('/api/appointments/:id/reminder', (req, res) => {
+  // WhatsApp Reminder Dispatch Endpoint (Protected)
+  app.post('/api/appointments/:id/reminder', requireAdminAuth, (req, res) => {
     const { id } = req.params;
     const list = loadAppointments();
     const found = list.find((a) => a.id === id);
@@ -333,8 +357,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     });
   });
 
-  // Get upcoming appointments due for reminder
-  app.get('/api/reminders/due', (req, res) => {
+  // Get upcoming appointments due for reminder (Protected)
+  app.get('/api/reminders/due', requireAdminAuth, (req, res) => {
     const list = loadAppointments();
     const settings = loadSettings();
     const now = new Date();

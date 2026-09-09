@@ -78,9 +78,13 @@ export const ServicesCatalog: React.FC<ServicesCatalogProps> = ({
     };
 
     try {
+      const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
       const res = await fetch(`/api/services/${editingService.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': adminPin,
+        },
         body: JSON.stringify(updated),
       });
       if (res.ok) {

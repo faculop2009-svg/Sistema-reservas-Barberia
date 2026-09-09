@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, KeyRound, AlertCircle, X, CheckCircle2 } from 'lucide-react';
+import { Lock, KeyRound, AlertCircle, X, ShieldCheck } from 'lucide-react';
 
 interface AdminPinModalProps {
   correctPin: string;
@@ -19,10 +19,11 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
     e.preventDefault();
     const effectivePin = correctPin || '1234';
     if (pin.trim() === effectivePin.trim()) {
+      sessionStorage.setItem('barber_admin_pin', pin.trim());
       sessionStorage.setItem('barber_admin_authenticated', 'true');
       onSuccess();
     } else {
-      setError('PIN incorrecto. Intenta nuevamente.');
+      setError('PIN incorrecto. Acceso denegado.');
       setPin('');
     }
   };
@@ -43,9 +44,9 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
             <Lock className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-black text-zinc-100">Acceso Administrativo</h3>
+          <h3 className="text-lg font-black text-zinc-100">Acceso del Personal</h3>
           <p className="text-xs text-zinc-400">
-            Ingresa el PIN de seguridad para gestionar turnos, catálogo y configuración del salón.
+            Ingresa tu PIN de seguridad para acceder a la agenda interna y gestión de la barbería.
           </p>
         </div>
 
@@ -59,7 +60,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-zinc-300 mb-1.5 text-center">
-              Código PIN (4 dígitos)
+              Código PIN de Seguridad
             </label>
             <div className="relative">
               <input
@@ -81,9 +82,9 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
           </div>
 
           <div className="p-2.5 bg-zinc-950/60 border border-zinc-800 rounded-xl text-[11px] text-zinc-400 flex items-start gap-2">
-            <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <span>
-              PIN predeterminado: <strong className="text-amber-400 font-mono">1234</strong>. Puedes cambiarlo luego en el botón <em>Configuración</em>.
+              Área privada exclusiva para el dueño o barbero. Si eres cliente, vuelve atrás para reservar tu turno.
             </span>
           </div>
 
@@ -93,7 +94,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({
               onClick={onClose}
               className="w-1/2 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-xs transition-colors"
             >
-              Cancelar
+              Volver
             </button>
             <button
               type="submit"
