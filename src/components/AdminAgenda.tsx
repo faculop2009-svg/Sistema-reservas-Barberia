@@ -398,18 +398,18 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
           <a
             href="/api/download-zip"
             target="_blank"
             rel="noopener noreferrer"
             download="barberia-turnos-completo.zip"
             id="admin-download-zip-btn"
-            className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/40 hover:border-amber-500 text-amber-400 hover:text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+            className="px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/40 hover:border-amber-500 text-amber-400 hover:text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
             title="Descargar todo el código del proyecto en un archivo .ZIP listo para subir a GitHub o Render"
           >
             <FolderDown className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden sm:inline">Descargar ZIP (GitHub)</span>
+            <span className="hidden sm:inline">Descargar ZIP</span>
             <span className="sm:hidden">ZIP</span>
           </a>
 
@@ -417,29 +417,30 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
             type="button"
             id="admin-export-csv-btn"
             onClick={handleExportCsv}
-            className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-amber-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-2.5 sm:px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-amber-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
             title="Exportar clientes y turnos a Excel / CSV"
           >
             <Download className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden md:inline">Exportar Excel</span>
-            <span className="md:hidden">CSV</span>
+            <span className="hidden sm:inline">Exportar Excel</span>
+            <span className="sm:hidden">Excel</span>
           </button>
 
           <button
             type="button"
             id="admin-settings-btn"
             onClick={onOpenSettings}
-            className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-2.5 sm:px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <Settings className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Configuración</span>
+            <span className="hidden sm:inline">Configuración</span>
+            <span className="sm:hidden">Ajustes</span>
           </button>
 
           <button
             type="button"
             id="admin-manual-btn"
             onClick={() => setShowManualModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/10 transition-colors"
+            className="px-3 sm:px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/10 transition-colors ml-auto sm:ml-0"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Nuevo Turno</span>
@@ -450,7 +451,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
               type="button"
               id="admin-lock-btn"
               onClick={onLockPanel}
-              className="px-2.5 py-2 rounded-xl bg-zinc-900 border border-red-500/20 hover:border-red-500/50 text-zinc-400 hover:text-red-400 text-xs font-semibold flex items-center gap-1 transition-colors ml-1"
+              className="px-2.5 py-2 rounded-xl bg-zinc-900 border border-red-500/20 hover:border-red-500/50 text-zinc-400 hover:text-red-400 text-xs font-semibold flex items-center gap-1 transition-colors"
               title="Cerrar sesión y proteger el panel"
             >
               <Lock className="w-3.5 h-3.5 text-red-400" />
@@ -460,13 +461,13 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
         </div>
       </div>
 
-      {/* Sub-Tab Selector */}
-      <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto text-xs scrollbar-none shadow-md">
+      {/* Sub-Tab Selector with smooth mobile touch scrolling */}
+      <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto text-xs no-scrollbar touch-scroll-x shadow-md snap-x -mx-1 px-1">
         <button
           type="button"
           id="admin-tab-agenda"
           onClick={() => setActiveTab('agenda')}
-          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
             activeTab === 'agenda'
               ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
@@ -480,7 +481,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           type="button"
           id="admin-tab-calendar"
           onClick={() => setActiveTab('calendar')}
-          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
             activeTab === 'calendar'
               ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
@@ -494,7 +495,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           type="button"
           id="admin-tab-staff"
           onClick={() => setActiveTab('staff')}
-          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
             activeTab === 'staff'
               ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
@@ -508,7 +509,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           type="button"
           id="admin-tab-catalog"
           onClick={() => setActiveTab('catalog')}
-          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
             activeTab === 'catalog'
               ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'

@@ -47,13 +47,13 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'quick' | 'full_calendar'>('quick');
 
-  // Generate next 8 days for quick strip
+  // Generate next 14 days for quick strip
   const quickDates = React.useMemo(() => {
     const dates = [];
     const today = new Date();
     const pad = (n: number) => n.toString().padStart(2, '0');
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       const ymd = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -150,12 +150,17 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
             <User className="w-3.5 h-3.5 text-amber-500" />
             Profesional / Barbero asignado
           </label>
-          <span className="text-[11px] text-zinc-500">
-            {eligibleBarbers.length} disponibles para este servicio
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-amber-500/80 font-medium sm:hidden flex items-center gap-1">
+              Desliza para elegir ➔
+            </span>
+            <span className="text-[11px] text-zinc-500 hidden sm:inline">
+              {eligibleBarbers.length} disponibles para este servicio
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2.5 overflow-x-auto pb-2 sm:pb-0 no-scrollbar touch-scroll-x snap-x snap-mandatory -mx-1 px-1">
           {activeBarbers.map((barber) => {
             const isSelected = selectedBarberId === barber.id;
             const canDoService =
@@ -170,7 +175,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                 id={`barber-btn-${barber.id}`}
                 disabled={!canDoService}
                 onClick={() => canDoService && onSelectBarber(barber.id)}
-                className={`p-3 rounded-xl border text-left transition-all text-xs flex items-center gap-3 relative ${
+                className={`p-3 rounded-xl border text-left transition-all text-xs flex items-center gap-3 relative flex-shrink-0 w-[240px] sm:w-auto snap-start ${
                   !canDoService
                     ? 'opacity-40 bg-zinc-950/40 border-zinc-800 cursor-not-allowed text-zinc-600'
                     : isSelected
@@ -240,6 +245,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                 Selecciona el día
               </label>
               <div className="flex items-center gap-2">
+                <span className="text-[11px] text-amber-500/80 font-medium sm:hidden">Desliza ➔</span>
                 <span className="text-[11px] text-zinc-500 hidden sm:inline">Otra fecha:</span>
                 <input
                   type="date"
@@ -252,7 +258,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-zinc-800">
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar touch-scroll-x snap-x snap-mandatory -mx-1 px-1">
               {quickDates.map((item) => {
                 const isSelected = selectedDate === item.ymd;
                 return (
@@ -262,7 +268,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                     id={`quick-date-${item.ymd}`}
                     disabled={item.isSunday}
                     onClick={() => onSelectDate(item.ymd)}
-                    className={`flex-shrink-0 w-20 py-2.5 px-2 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                    className={`flex-shrink-0 w-20 py-2.5 px-2 rounded-xl border flex flex-col items-center justify-center transition-all snap-start ${
                       item.isSunday
                         ? 'opacity-40 bg-zinc-900/30 border-zinc-800/50 cursor-not-allowed text-zinc-600'
                         : isSelected

@@ -28,6 +28,13 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
   onViewCatalog,
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const categories = ['all', ...Array.from(new Set(services.map((s) => s.category).filter(Boolean)))];
+
+  const filteredServices = selectedCategory === 'all'
+    ? services
+    : services.filter((s) => s.category === selectedCategory);
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -73,8 +80,28 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
         )}
       </div>
 
+      {/* Swipeable Category Filter Bar */}
+      {categories.length > 2 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-scroll-x py-1 -mx-1 px-1">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                selectedCategory === cat
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              {cat === 'all' ? 'Todos los servicios' : cat}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        {services.map((service) => {
+        {filteredServices.map((service) => {
           const isSelected = selectedServiceId === service.id;
           const isExpanded = expandedId === service.id;
 

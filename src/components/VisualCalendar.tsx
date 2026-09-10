@@ -346,25 +346,25 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
         </div>
 
         {/* Month Grid */}
-        <div className="p-4 sm:p-5">
+        <div className="p-2 sm:p-5">
           {/* Day of Week Headers */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-            <div>Lun</div>
-            <div>Mar</div>
-            <div>Mié</div>
-            <div>Jue</div>
-            <div>Vie</div>
-            <div>Sáb</div>
-            <div className="text-rose-400/80">Dom</div>
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+            <div><span className="sm:hidden">L</span><span className="hidden sm:inline">Lun</span></div>
+            <div><span className="sm:hidden">M</span><span className="hidden sm:inline">Mar</span></div>
+            <div><span className="sm:hidden">X</span><span className="hidden sm:inline">Mié</span></div>
+            <div><span className="sm:hidden">J</span><span className="hidden sm:inline">Jue</span></div>
+            <div><span className="sm:hidden">V</span><span className="hidden sm:inline">Vie</span></div>
+            <div><span className="sm:hidden">S</span><span className="hidden sm:inline">Sáb</span></div>
+            <div className="text-rose-400/80"><span className="sm:hidden">D</span><span className="hidden sm:inline">Dom</span></div>
           </div>
 
           {/* Month Days Grid */}
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
             {/* Empty slots for month start offset */}
             {Array.from({ length: startOffset }).map((_, i) => (
               <div
                 key={`empty-${i}`}
-                className="h-14 sm:h-16 rounded-xl bg-zinc-950/30 border border-zinc-900/40 opacity-30"
+                className="h-11 sm:h-16 rounded-lg sm:rounded-xl bg-zinc-950/30 border border-zinc-900/40 opacity-30"
               />
             ))}
 
@@ -388,7 +388,7 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
                   type="button"
                   key={dateStr}
                   onClick={() => onSelectDate(dateStr)}
-                  className={`h-14 sm:h-16 rounded-xl p-1.5 sm:p-2 text-left flex flex-col justify-between transition-all relative border group ${
+                  className={`h-11 sm:h-16 rounded-lg sm:rounded-xl p-1 sm:p-2 text-left flex flex-col justify-between transition-all relative border group ${
                     isSelected
                       ? 'bg-amber-500 text-zinc-950 border-amber-400 font-bold shadow-lg shadow-amber-500/20 scale-[1.02] z-10'
                       : isPast
@@ -414,7 +414,7 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
                     </span>
                     {isToday && (
                       <span
-                        className={`text-[9px] px-1 rounded font-bold uppercase ${
+                        className={`text-[8px] sm:text-[9px] px-1 rounded font-bold uppercase ${
                           isSelected ? 'bg-zinc-950 text-amber-400' : 'bg-amber-500/20 text-amber-400'
                         }`}
                       >
@@ -426,15 +426,19 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
                   {/* Visual Status Indicator */}
                   <div className="flex items-center gap-1 text-[10px]">
                     {isSunday ? (
-                      <span className={`text-[10px] ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
-                        Cerrado
+                      <span className={`text-[8px] sm:text-[10px] ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                        <span className="sm:hidden">Off</span>
+                        <span className="hidden sm:inline">Cerrado</span>
                       </span>
                     ) : isPast ? (
-                      <span className="text-[10px] text-zinc-600">Pasado</span>
+                      <span className="text-[8px] sm:text-[10px] text-zinc-600">
+                        <span className="sm:hidden">-</span>
+                        <span className="hidden sm:inline">Pasado</span>
+                      </span>
                     ) : (
                       <div className="flex items-center gap-1">
                         <span
-                          className={`w-2 h-2 rounded-full ${
+                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                             isSelected ? 'bg-zinc-950' : 'bg-emerald-400'
                           }`}
                         />

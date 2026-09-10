@@ -286,12 +286,12 @@ export const ServicesCatalog: React.FC<ServicesCatalogProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="flex items-center gap-2 pt-6 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 pt-6 overflow-x-auto pb-1 no-scrollbar touch-scroll-x snap-x -mx-1 px-1">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 snap-start ${
                 selectedCategory === cat
                   ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
                   : 'bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'

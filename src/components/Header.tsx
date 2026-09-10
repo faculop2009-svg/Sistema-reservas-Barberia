@@ -68,22 +68,22 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Main Nav Bar */}
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between py-2.5 sm:py-3">
           {/* Logo & Brand */}
           <div
             id="brand-logo"
             onClick={() => setActiveView('book')}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-              <Scissors className="w-5 h-5 stroke-[2.5]" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+              <Scissors className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-black text-zinc-100 tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-sm sm:text-lg font-black text-zinc-100 tracking-tight truncate">
                   {settings.shopName}
                 </h1>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex-shrink-0">
                   Online
                 </span>
               </div>
@@ -93,8 +93,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Navigation Controls */}
-          <nav className="flex items-center gap-1 sm:gap-1.5">
+          {/* Desktop Navigation Controls */}
+          <nav className="hidden md:flex items-center gap-1.5">
             <button
               id="nav-btn-book"
               onClick={() => setActiveView('book')}
@@ -111,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="nav-btn-catalog"
               onClick={() => setActiveView('catalog')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all hidden md:flex items-center gap-1.5 ${
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 activeView === 'catalog'
                   ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
                   : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="nav-btn-calendar"
               onClick={() => setActiveView('calendar')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all hidden lg:flex items-center gap-1.5 ${
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 activeView === 'calendar'
                   ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
                   : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
@@ -157,8 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mi Turno</span>
-              <span className="sm:hidden">Turno</span>
+              <span>Mi Turno</span>
             </button>
 
             <div className="h-5 w-px bg-zinc-800 mx-1" />
@@ -166,7 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="nav-btn-admin"
               onClick={() => setActiveView('admin')}
-              className={`px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 border ${
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 border ${
                 activeView === 'admin'
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/40 shadow-inner'
                   : 'bg-zinc-900/60 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700'
@@ -174,8 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Acceso exclusivo para el barbero / dueño (requiere PIN)"
             >
               <Lock className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden sm:inline text-xs">Acceso Barbero</span>
-              <span className="sm:hidden text-xs">Staff</span>
+              <span className="text-xs">Acceso Barbero</span>
               {pendingRemindersCount > 0 && (
                 <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold animate-pulse">
                   {pendingRemindersCount}
@@ -183,6 +181,109 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
           </nav>
+
+          {/* Quick Mobile Right Action (Staff PIN or WhatsApp) */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              id="nav-btn-admin-mobile-quick"
+              onClick={() => setActiveView('admin')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border transition-all ${
+                activeView === 'admin'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+              }`}
+              title="Acceso Barbero"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-[11px]">Staff</span>
+              {pendingRemindersCount > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Swipeable Horizontal Navigation Bar (Allows smooth touch sliding to see all options) */}
+        <div className="md:hidden pb-2.5 pt-0.5 -mx-4 px-4 overflow-x-auto no-scrollbar touch-scroll-x">
+          <div className="flex items-center gap-1.5 w-max">
+            <button
+              id="nav-btn-book-mobile"
+              onClick={() => setActiveView('book')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'book'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <Scissors className="w-3.5 h-3.5" />
+              <span>Reservar</span>
+            </button>
+
+            <button
+              id="nav-btn-catalog-mobile"
+              onClick={() => setActiveView('catalog')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'catalog'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Catálogo</span>
+            </button>
+
+            <button
+              id="nav-btn-calendar-mobile"
+              onClick={() => setActiveView('calendar')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'calendar'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Disponibilidad</span>
+            </button>
+
+            <button
+              id="nav-btn-reviews-mobile"
+              onClick={() => setActiveView('reviews')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'reviews'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5" />
+              <span>Reseñas</span>
+            </button>
+
+            <button
+              id="nav-btn-my-turns-mobile"
+              onClick={() => setActiveView('my-turns')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'my-turns'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Mi Turno</span>
+            </button>
+
+            <button
+              id="nav-btn-admin-tab-mobile"
+              onClick={() => setActiveView('admin')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'admin'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-500" />
+              <span>Panel Barbero</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
