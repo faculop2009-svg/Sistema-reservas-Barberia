@@ -1,5 +1,24 @@
 [
   {
+    "id": "apt-1789075514605-ij8p",
+    "code": "BAR-6094",
+    "serviceId": "corte",
+    "serviceName": "Corte de Cabello",
+    "servicePrice": 20000,
+    "durationMinutes": 30,
+    "barberId": "barber-1",
+    "barberName": "Alejandro \"Alex\" Silva",
+    "date": "2026-09-10",
+    "time": "18:30",
+    "clientName": "Test Turno Hoy",
+    "clientPhone": "+5493516329399",
+    "clientNotes": "Prueba de turno en el dia",
+    "status": "cancelled",
+    "createdAt": "2026-09-10T21:25:14.605Z",
+    "reminderStatus": "pending",
+    "whatsappMessage": "💈 *Recordatorio de Turno en La Docta Barberia*\n\nHola *Test Turno Hoy*, te recordamos tu cita agendada:\n\n✂️ *Servicio:* Corte de Cabello\n📅 *Fecha:* jueves, 10 de septiembre de 2026\n⏰ *Hora:* 18:30 hs\n💈 *Profesional:* Alejandro \"Alex\" Silva\n⏳ *Duración:* 30 min\n💵 *Total:* $20.000\n📍 *Lugar:* Av. Talleres, José Patiño y, Córdoba\n\n*Código de reserva:* BAR-6094\n\n¿Necesitas reprogramar o cancelar? Por favor avísanos con anticipación respondiendo a este mensaje. ¡Te esperamos!"
+  },
+  {
     "id": "apt-1788897468732-s2mr",
     "code": "BAR-3294",
     "serviceId": "corte_barba",

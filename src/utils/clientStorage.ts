@@ -248,8 +248,9 @@ export function getClientAvailableSlotsForDate(
   const [lunchStartH, lunchStartM] = (settings.lunchBreakStart || '13:30').split(':').map(Number);
   const [lunchEndH, lunchEndM] = (settings.lunchBreakEnd || '14:30').split(':').map(Number);
 
-  const todayDateStr = new Date().toISOString().split('T')[0];
   const now = new Date();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const todayDateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const currentMinutesToday = now.getHours() * 60 + now.getMinutes();
 
   const dateBookings = appointments.filter((a) => a.date === date && a.status !== 'cancelled');
@@ -273,6 +274,10 @@ export function getClientAvailableSlotsForDate(
       available = false;
       status = 'blocked';
       reason = dayBlockReason || 'Día no disponible';
+    } else if (date < todayDateStr) {
+      available = false;
+      status = 'past';
+      reason = 'Fecha ya transcurrida';
     } else if (slotTotalMinutes >= lunchStartMinutes && slotTotalMinutes < lunchEndMinutes) {
       available = false;
       status = 'lunch';

@@ -163,6 +163,36 @@ export function updateService(id: string, updates: Partial<BarberService>): Barb
   return services[index];
 }
 
+export function createService(serviceData: Omit<BarberService, 'id'>): BarberService {
+  const services = loadServices();
+  const slug = serviceData.name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const id = `${slug || 'servicio'}_${Date.now().toString(36)}`;
+  const newService: BarberService = {
+    ...serviceData,
+    id: id as any,
+    popular: serviceData.popular ?? false,
+    imageUrl: serviceData.imageUrl || 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop&q=80',
+    includedSteps: serviceData.includedSteps || ['Atención personalizada', 'Finalización con producto premium'],
+  };
+  services.push(newService);
+  saveServices(services);
+  return newService;
+}
+
+export function deleteService(id: string): void {
+  let services = loadServices();
+  if (services.length <= 1) {
+    throw new Error('Debe existir al menos un servicio en el catálogo');
+  }
+  services = services.filter((s) => s.id !== id);
+  saveServices(services);
+}
+
 // -------------------------------------------------------------
 // CALENDAR BLOCKS & AVAILABILITY
 // -------------------------------------------------------------
@@ -386,11 +416,52 @@ export function buildWhatsAppUrl(phone: string, text: string): string {
   return `https://wa.me/${cleanPhone}?text=${encodedText}`;
 }
 
+export function getShopCurrentTime(timezone: string = 'America/Argentina/Cordoba'): {
+  todayStr: string;
+  currentMinutes: number;
+  currentHourStr: string;
+} {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const formatted = formatter.format(new Date());
+    // "YYYY-MM-DD, HH:mm" or "YYYY-MM-DD HH:mm"
+    const clean = formatted.replace(',', '').trim();
+    const [datePart, timePart] = clean.split(' ');
+    const [h, m] = (timePart || '00:00').split(':').map(Number);
+    return {
+      todayStr: datePart,
+      currentMinutes: (h || 0) * 60 + (m || 0),
+      currentHourStr: timePart || '00:00',
+    };
+  } catch (err) {
+    const now = new Date();
+    // Default fallback to Argentina UTC-3
+    const utcHours = now.getUTCHours();
+    const argHours = (utcHours - 3 + 24) % 24;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return {
+      todayStr: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+      currentMinutes: argHours * 60 + now.getUTCMinutes(),
+      currentHourStr: `${pad(argHours)}:${pad(now.getUTCMinutes())}`,
+    };
+  }
+}
+
 export function getAvailableSlotsForDate(
   date: string,
   serviceId: string = 'corte',
   barberId: string = 'barber-any',
-  includeDetails: boolean = false
+  includeDetails: boolean = false,
+  clientTime?: string,
+  clientDate?: string
 ): {
   date: string;
   isDayBlocked: boolean;
@@ -449,9 +520,15 @@ export function getAvailableSlotsForDate(
   const [lunchStartH, lunchStartM] = (settings.lunchBreakStart || '13:30').split(':').map(Number);
   const [lunchEndH, lunchEndM] = (settings.lunchBreakEnd || '14:30').split(':').map(Number);
 
-  const todayDateStr = new Date().toISOString().split('T')[0];
-  const now = new Date();
-  const currentMinutesToday = now.getHours() * 60 + now.getMinutes();
+  // Determine today date and current time using local shop timezone or client parameters
+  const shopTime = getShopCurrentTime(settings.timezone || 'America/Argentina/Cordoba');
+  const todayDateStr = clientDate && /^\d{4}-\d{2}-\d{2}$/.test(clientDate) ? clientDate : shopTime.todayStr;
+
+  let currentMinutesToday = shopTime.currentMinutes;
+  if (clientTime && /^\d{2}:\d{2}$/.test(clientTime)) {
+    const [ch, cm] = clientTime.split(':').map(Number);
+    currentMinutesToday = ch * 60 + cm;
+  }
 
   // Bookings for this date that are not cancelled
   const dateBookings = appointments.filter(
@@ -477,6 +554,10 @@ export function getAvailableSlotsForDate(
       available = false;
       status = 'blocked';
       reason = dayBlockReason || 'Día no disponible';
+    } else if (date < todayDateStr) {
+      available = false;
+      status = 'past';
+      reason = 'Fecha ya transcurrida';
     } else if (slotTotalMinutes >= lunchStartMinutes && slotTotalMinutes < lunchEndMinutes) {
       available = false;
       status = 'lunch';

@@ -79,8 +79,10 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
     return dates;
   }, []);
 
-  // Filter barbers eligible for this service
-  const eligibleBarbers = barbers.filter((b) => {
+  // Filter barbers eligible for this service and currently active
+  const activeBarbers = barbers.filter((b) => b.active !== false);
+
+  const eligibleBarbers = activeBarbers.filter((b) => {
     if (b.id === 'barber-any') return true;
     if (!b.allowedServiceIds || b.allowedServiceIds.length === 0) return true;
     return b.allowedServiceIds.includes(selectedServiceId);
@@ -154,7 +156,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-          {barbers.map((barber) => {
+          {activeBarbers.map((barber) => {
             const isSelected = selectedBarberId === barber.id;
             const canDoService =
               barber.id === 'barber-any' ||
@@ -294,10 +296,44 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verificando turnos...
                   </span>
                 ) : (
-                  `${availableCount} turnos libres para hoy`
+                  `${availableCount} ${availableCount === 1 ? 'turno libre' : 'turnos libres'} para ${
+                    quickDates[0]?.ymd === selectedDate
+                      ? 'hoy'
+                      : quickDates[1]?.ymd === selectedDate
+                      ? 'mañana'
+                      : 'la fecha seleccionada'
+                  }`
                 )}
               </span>
             </div>
+
+            {/* Notice if Today has 0 remaining slots */}
+            {quickDates[0]?.ymd === selectedDate && availableCount === 0 && !loadingSlots && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 text-amber-200">
+                  <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-amber-300 text-sm">
+                      No quedan más turnos disponibles para hoy
+                    </p>
+                    <p className="text-zinc-400 text-[11px] mt-0.5">
+                      Los horarios de la jornada ya concluyeron o están completos. ¡Te invitamos a agendar para mañana!
+                    </p>
+                  </div>
+                </div>
+                {quickDates[1] && (
+                  <button
+                    type="button"
+                    id="btn-switch-tomorrow"
+                    onClick={() => onSelectDate(quickDates[1].ymd)}
+                    className="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 flex-shrink-0"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    <span>Ver turnos para Mañana</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {loadingSlots ? (
               <div className="py-10 flex items-center justify-center text-zinc-400 gap-2 text-xs">

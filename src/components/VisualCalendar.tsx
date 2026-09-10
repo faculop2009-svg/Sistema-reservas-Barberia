@@ -73,8 +73,13 @@ export const VisualCalendar: React.FC<VisualCalendarProps> = ({
   const fetchSlots = useCallback(async (dateStr: string, barberIdStr: string, serviceIdStr: string) => {
     setLoadingSlots(true);
     try {
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const clientTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const clientDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
       const res = await fetch(
-        `/api/slots?date=${dateStr}&barberId=${barberIdStr}&serviceId=${serviceIdStr}`
+        `/api/slots?date=${dateStr}&barberId=${barberIdStr}&serviceId=${serviceIdStr}&clientTime=${clientTime}&clientDate=${clientDate}`
       ).catch(() => null);
       if (res && res.ok) {
         const data = await res.json();

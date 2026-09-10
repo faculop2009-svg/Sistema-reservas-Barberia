@@ -15,6 +15,8 @@ import {
   loadServices,
   saveServices,
   updateService,
+  createService,
+  deleteService,
   loadCalendarBlocks,
   toggleSlotBlock,
   toggleDayBlock,
@@ -83,10 +85,56 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
   };
 
   // -------------------------------------------------------------
+  // Admin PIN Verification Endpoint
+  // -------------------------------------------------------------
+  app.post('/api/auth/verify-pin', (req, res) => {
+    const { pin } = req.body || {};
+    const settings = loadSettings();
+    const validPin = (settings.adminPin || '1234').trim();
+    const submittedPin = (pin || '').toString().trim();
+
+    if (submittedPin && submittedPin === validPin) {
+      // Return full settings including adminPin to authorized session
+      return res.json({
+        success: true,
+        message: 'Acceso autorizado',
+        settings,
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      error: 'PIN incorrecto. Acceso denegado.',
+    });
+  });
+
+  // -------------------------------------------------------------
   // Services Catalog
   // -------------------------------------------------------------
   app.get('/api/services', (req, res) => {
     res.json(loadServices());
+  });
+
+  app.post('/api/services', requireAdminAuth, (req, res) => {
+    try {
+      const { name, category, price, durationMinutes, description, imageUrl, popular, includedSteps } = req.body;
+      if (!name || !price) {
+        return res.status(400).json({ error: 'Nombre y precio son obligatorios' });
+      }
+      const created = createService({
+        name: name.trim(),
+        category: category || 'Corte',
+        price: Number(price),
+        durationMinutes: Number(durationMinutes) || 30,
+        description: description?.trim() || '',
+        imageUrl: imageUrl?.trim(),
+        popular: !!popular,
+        includedSteps: includedSteps || ['Atención personalizada'],
+      });
+      res.status(201).json(created);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al crear servicio' });
+    }
   });
 
   app.put('/api/services/:id', requireAdminAuth, (req, res) => {
@@ -95,6 +143,15 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
       res.json(updated);
     } catch (err: any) {
       res.status(400).json({ error: err.message || 'Error al actualizar servicio' });
+    }
+  });
+
+  app.delete('/api/services/:id', requireAdminAuth, (req, res) => {
+    try {
+      deleteService(req.params.id);
+      res.json({ message: 'Servicio eliminado con éxito' });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al eliminar servicio' });
     }
   });
 
@@ -203,11 +260,13 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
 
   // Available slots for a specific day
   app.get('/api/slots', (req, res) => {
-    const date = (req.query.date as string) || new Date().toISOString().split('T')[0];
+    const date = (req.query.date as string) || '';
     const serviceId = (req.query.serviceId as string) || 'corte';
     const barberId = (req.query.barberId as string) || 'barber-any';
+    const clientTime = req.query.clientTime as string | undefined;
+    const clientDate = req.query.clientDate as string | undefined;
 
-    const result = getAvailableSlotsForDate(date, serviceId, barberId, true);
+    const result = getAvailableSlotsForDate(date, serviceId, barberId, true, clientTime, clientDate);
     res.json(result);
   });
 

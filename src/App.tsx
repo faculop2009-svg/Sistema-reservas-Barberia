@@ -17,7 +17,9 @@ import {
   loadClientSettings,
   saveClientSettings,
   loadClientServices,
+  saveClientServices,
   loadClientBarbers,
+  saveClientBarbers,
   getClientAvailableSlotsForDate,
   createClientAppointment,
 } from './utils/clientStorage.ts';
@@ -32,11 +34,20 @@ export default function App() {
   const [selectedService, setSelectedService] = useState<BarberService>(DEFAULT_SERVICES[0]);
   const [selectedBarberId, setSelectedBarberId] = useState<string>('barber-any');
 
-  // Default to today's date
+  // Default to today's date (or tomorrow if today is Sunday or after closing)
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
+    const now = new Date();
     const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    if (now.getDay() === 0 || currentMins >= 19 * 60 + 30) {
+      const nextDay = new Date(now);
+      nextDay.setDate(now.getDate() + 1);
+      if (nextDay.getDay() === 0) {
+        nextDay.setDate(nextDay.getDate() + 1);
+      }
+      return `${nextDay.getFullYear()}-${pad(nextDay.getMonth() + 1)}-${pad(nextDay.getDate())}`;
+    }
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   });
 
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -61,7 +72,9 @@ export default function App() {
   // Admin Security PIN state
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try {
-      return sessionStorage.getItem('barber_admin_authenticated') === 'true';
+      const isAuth = sessionStorage.getItem('barber_admin_authenticated') === 'true';
+      const pin = sessionStorage.getItem('barber_admin_pin');
+      return isAuth && !!pin;
     } catch {
       return false;
     }
@@ -154,10 +167,17 @@ export default function App() {
     const fetchSlots = async () => {
       setLoadingSlots(true);
       try {
+        const now = new Date();
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const clientTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const clientDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
         const params = new URLSearchParams({
           date: selectedDate,
           serviceId: selectedService.id,
           barberId: selectedBarberId,
+          clientTime,
+          clientDate,
         });
         const res = await fetch(`/api/slots?${params.toString()}`).catch(() => null);
         if (res && res.ok) {
@@ -333,9 +353,23 @@ export default function App() {
     setShowSettingsModal(true);
   };
 
-  const handlePinSuccess = () => {
+  const handleBarbersChange = (updatedBarbers: Barber[]) => {
+    setBarbers(updatedBarbers);
+    saveClientBarbers(updatedBarbers);
+  };
+
+  const handleServicesChange = (updatedServices: BarberService[]) => {
+    setServices(updatedServices);
+    saveClientServices(updatedServices);
+  };
+
+  const handlePinSuccess = (verifiedSettings?: BusinessSettings) => {
     setIsAdminAuthenticated(true);
     setShowPinModal(false);
+    if (verifiedSettings) {
+      setSettings(verifiedSettings);
+      saveClientSettings(verifiedSettings);
+    }
     if (pendingAdminAction === 'admin_view') {
       setActiveView('admin');
     } else if (pendingAdminAction === 'settings_modal') {
@@ -448,11 +482,12 @@ export default function App() {
           <div className="space-y-6 animate-in fade-in duration-200">
             <ServicesCatalog
               services={services}
-              isAdmin={false}
+              isAdmin={isAdminAuthenticated}
               onSelectServiceAndBook={(serv) => {
                 setSelectedService(serv);
                 setActiveView('book');
               }}
+              onServicesChange={handleServicesChange}
             />
           </div>
         )}
@@ -506,8 +541,8 @@ export default function App() {
               services={services}
               barbers={barbers}
               onOpenSettings={handleRequestSettings}
-              onBarbersChange={(updatedBarbers) => setBarbers(updatedBarbers)}
-              onServicesChange={(updatedServices) => setServices(updatedServices)}
+              onBarbersChange={handleBarbersChange}
+              onServicesChange={handleServicesChange}
               onLockPanel={handleLockAdminPanel}
             />
           </div>

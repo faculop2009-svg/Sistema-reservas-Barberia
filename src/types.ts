@@ -8,8 +8,9 @@ export interface BarberService {
   price: number;
   description: string;
   includes?: string[];
+  includedSteps?: string[];
   imageUrl?: string;
-  iconName: 'Scissors' | 'Sparkles' | 'Flame' | 'Palette' | string;
+  iconName?: 'Scissors' | 'Sparkles' | 'Flame' | 'Palette' | string;
   popular?: boolean;
 }
 
@@ -96,6 +97,7 @@ export interface BusinessSettings {
   adminPin?: string; // e.g. "1234"
   currencySymbol?: string; // e.g. "$"
   instagram?: string; // e.g. "@barberiavintage"
+  timezone?: string; // e.g. "America/Argentina/Cordoba"
 }
 
 export interface BookingPayload {

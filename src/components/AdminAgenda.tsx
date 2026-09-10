@@ -563,6 +563,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
             onUpdateService={(updated) => {
               onServicesChange(services.map((s) => (s.id === updated.id ? updated : s)));
             }}
+            onServicesChange={onServicesChange}
           />
         </div>
       )}

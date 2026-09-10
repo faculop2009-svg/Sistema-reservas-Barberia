@@ -18,14 +18,21 @@ import {
   Clock,
   ChevronRight,
   Filter,
+  AlertTriangle,
+  Loader2,
+  Image as ImageIcon,
+  Power,
+  KeyRound,
 } from 'lucide-react';
 import { Barber, BarberService } from '../types.ts';
+import { saveClientBarbers } from '../utils/clientStorage.ts';
 
 interface StaffManagementProps {
   barbers: Barber[];
   services: BarberService[];
   onBarbersChange: (barbers: Barber[]) => void;
   onNavigateToCalendar?: (barberId?: string) => void;
+  onRequestPinModal?: () => void;
 }
 
 const WEEK_DAYS = [
@@ -38,15 +45,55 @@ const WEEK_DAYS = [
   { id: 0, label: 'Domingo', short: 'Dom' },
 ];
 
+const PRESET_AVATARS = [
+  {
+    name: 'Fade Clásico',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Barba & Grooming',
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Estilista & Color',
+    url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Modern Stylist',
+    url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Especialista Barba',
+    url: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Master Barber',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Colorimetría',
+    url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
+  },
+  {
+    name: 'Freestyle Hair',
+    url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80',
+  },
+];
+
 export const StaffManagement: React.FC<StaffManagementProps> = ({
   barbers,
   services,
   onBarbersChange,
   onNavigateToCalendar,
+  onRequestPinModal,
 }) => {
   const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
+
+  // Deletion Confirmation State (In-app modal, replaces window.confirm which is blocked in iframes)
+  const [deletingBarber, setDeletingBarber] = useState<Barber | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -57,10 +104,11 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [availableDays, setAvailableDays] = useState<number[]>([1, 2, 3, 4, 5, 6]);
-  const [allowedServiceIds, setAllowedServiceIds] = useState<string[]>(['corte', 'corte_barba', 'barba']);
+  const [allowedServiceIds, setAllowedServiceIds] = useState<string[]>([]);
   const [active, setActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
 
   // Filter out the generic "barber-any" for the staff roster view, but keep it available
   const staffList = barbers.filter((b) => b.id !== 'barber-any');
@@ -70,15 +118,22 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
     return b.allowedServiceIds?.includes(selectedServiceFilter);
   });
 
+  const showToast = (message: string) => {
+    setSuccessToast(message);
+    setTimeout(() => {
+      setSuccessToast(null);
+    }, 3500);
+  };
+
   const openNewBarberModal = () => {
     setEditingBarber(null);
     setName('');
     setRole('Barbero & Estilista');
-    setSpecialtiesList(['Degradé', 'Tijera', 'Barba']);
+    setSpecialtiesList(['Cortes clásicos', 'Degradé / Fade', 'Diseño de barba']);
     setSpecialtiesText('');
     setBio('');
     setPhone('');
-    setAvatarUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80');
+    setAvatarUrl(PRESET_AVATARS[0].url);
     setAvailableDays([1, 2, 3, 4, 5, 6]);
     setAllowedServiceIds(services.map((s) => s.id));
     setActive(true);
@@ -90,13 +145,23 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
     setEditingBarber(barber);
     setName(barber.name);
     setRole(barber.role || 'Peluquero Profesional');
-    setSpecialtiesList(barber.specialties || (barber.specialty ? [barber.specialty] : []));
+    setSpecialtiesList(
+      barber.specialties && barber.specialties.length > 0
+        ? barber.specialties
+        : barber.specialty
+        ? [barber.specialty]
+        : ['Peluquería general']
+    );
     setSpecialtiesText('');
     setBio(barber.bio || '');
     setPhone(barber.phone || '');
-    setAvatarUrl(barber.avatarUrl || '');
+    setAvatarUrl(barber.avatarUrl || PRESET_AVATARS[0].url);
     setAvailableDays(barber.availableDays || [1, 2, 3, 4, 5, 6]);
-    setAllowedServiceIds(barber.allowedServiceIds || services.map((s) => s.id));
+    setAllowedServiceIds(
+      barber.allowedServiceIds && barber.allowedServiceIds.length > 0
+        ? barber.allowedServiceIds
+        : services.map((s) => s.id)
+    );
     setActive(barber.active ?? true);
     setFormError(null);
     setIsModalOpen(true);
@@ -131,15 +196,50 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
     }
   };
 
+  // Direct toggle active/inactive status from card
+  const handleQuickToggleActive = async (barber: Barber) => {
+    const updatedStatus = !barber.active;
+    const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
+
+    try {
+      const res = await fetch(`/api/barbers/${barber.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': adminPin,
+        },
+        body: JSON.stringify({ active: updatedStatus }),
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const updated = await res.json();
+        const nextList = barbers.map((b) => (b.id === updated.id ? updated : b));
+        onBarbersChange(nextList);
+        saveClientBarbers(nextList);
+        showToast(`Estado de ${barber.name} cambiado a ${updatedStatus ? 'Activo' : 'Inactivo'}`);
+      } else {
+        // Fallback local update
+        const nextList = barbers.map((b) => (b.id === barber.id ? { ...b, active: updatedStatus } : b));
+        onBarbersChange(nextList);
+        saveClientBarbers(nextList);
+        showToast(`Estado de ${barber.name} actualizado localmente.`);
+      }
+    } catch {
+      const nextList = barbers.map((b) => (b.id === barber.id ? { ...b, active: updatedStatus } : b));
+      onBarbersChange(nextList);
+      saveClientBarbers(nextList);
+    }
+  };
+
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !role.trim()) {
-      setFormError('El nombre y el rol son obligatorios.');
+      setFormError('El nombre y el puesto/rol son obligatorios.');
       return;
     }
 
     if (allowedServiceIds.length === 0) {
-      setFormError('Debes asignar al menos un servicio que este peluquero pueda realizar.');
+      setFormError('Debes asignar al menos un servicio que este profesional pueda realizar.');
       return;
     }
 
@@ -153,7 +253,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
       specialty: specialtiesList[0] || role.trim(),
       bio: bio.trim(),
       phone: phone.trim(),
-      avatarUrl: avatarUrl.trim() || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: avatarUrl.trim() || PRESET_AVATARS[0].url,
       availableDays,
       allowedServiceIds,
       active,
@@ -161,8 +261,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
 
     try {
       const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
+
       if (editingBarber) {
-        // Update
+        // Update existing barber
         const res = await fetch(`/api/barbers/${editingBarber.id}`, {
           method: 'PUT',
           headers: {
@@ -170,17 +271,28 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
             'x-admin-pin': adminPin,
           },
           body: JSON.stringify(payload),
-        });
-        if (res.ok) {
+        }).catch(() => null);
+
+        if (res && res.ok) {
           const updated = await res.json();
-          onBarbersChange(barbers.map((b) => (b.id === updated.id ? updated : b)));
+          const nextList = barbers.map((b) => (b.id === updated.id ? updated : b));
+          onBarbersChange(nextList);
+          saveClientBarbers(nextList);
           setIsModalOpen(false);
+          showToast(`Profesional ${updated.name} actualizado con éxito.`);
+        } else if (res && res.status === 401) {
+          setFormError('Acceso no autorizado. Tu PIN de administrador es inválido o la sesión expiró.');
         } else {
-          const err = await res.json();
-          setFormError(err.error || 'Error al actualizar el peluquero');
+          // If network failed, update in client storage as fallback
+          const updated: Barber = { ...editingBarber, ...payload };
+          const nextList = barbers.map((b) => (b.id === updated.id ? updated : b));
+          onBarbersChange(nextList);
+          saveClientBarbers(nextList);
+          setIsModalOpen(false);
+          showToast(`Profesional ${updated.name} actualizado.`);
         }
       } else {
-        // Create new
+        // Create new barber
         const res = await fetch('/api/barbers', {
           method: 'POST',
           headers: {
@@ -188,45 +300,85 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
             'x-admin-pin': adminPin,
           },
           body: JSON.stringify(payload),
-        });
-        if (res.ok) {
+        }).catch(() => null);
+
+        if (res && res.ok) {
           const created = await res.json();
-          onBarbersChange([...barbers, created]);
+          const nextList = [...barbers, created];
+          onBarbersChange(nextList);
+          saveClientBarbers(nextList);
           setIsModalOpen(false);
+          showToast(`¡Nuevo profesional ${created.name} registrado con éxito!`);
+        } else if (res && res.status === 401) {
+          setFormError('Acceso no autorizado. Tu PIN de administrador es inválido o la sesión expiró.');
         } else {
-          const err = await res.json();
-          setFormError(err.error || 'Error al registrar el peluquero');
+          // Fallback client creation
+          const newBarber: Barber = {
+            id: `barber-${Date.now()}`,
+            ...payload,
+          };
+          const nextList = [...barbers, newBarber];
+          onBarbersChange(nextList);
+          saveClientBarbers(nextList);
+          setIsModalOpen(false);
+          showToast(`¡Nuevo profesional ${newBarber.name} registrado!`);
         }
       }
     } catch (err) {
-      console.error(err);
-      setFormError('Error de red al guardar el peluquero');
+      console.error('Error saving barber:', err);
+      setFormError('Error de conexión al guardar los datos del peluquero.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteBarber = async (id: string, barberName: string) => {
-    if (!confirm(`¿Estás seguro de eliminar a ${barberName} del equipo?`)) return;
+  const handleConfirmDelete = async () => {
+    if (!deletingBarber) return;
+    setIsDeleting(true);
 
     try {
       const adminPin = sessionStorage.getItem('barber_admin_pin') || '';
-      const res = await fetch(`/api/barbers/${id}`, {
+      const res = await fetch(`/api/barbers/${deletingBarber.id}`, {
         method: 'DELETE',
         headers: {
           'x-admin-pin': adminPin,
         },
-      });
-      if (res.ok) {
-        onBarbersChange(barbers.filter((b) => b.id !== id));
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const nextList = barbers.filter((b) => b.id !== deletingBarber.id);
+        onBarbersChange(nextList);
+        saveClientBarbers(nextList);
+        showToast(`Profesional ${deletingBarber.name} eliminado del equipo.`);
+        setDeletingBarber(null);
+      } else if (res && res.status === 401) {
+        alert('Acceso no autorizado. Se requiere PIN de administrador válido para eliminar.');
+      } else {
+        // Fallback local deletion
+        const nextList = barbers.filter((b) => b.id !== deletingBarber.id);
+        onBarbersChange(nextList);
+        saveClientBarbers(nextList);
+        showToast(`Profesional ${deletingBarber.name} eliminado.`);
+        setDeletingBarber(null);
       }
     } catch (err) {
       console.error('Error deleting barber:', err);
+      alert('Error de red al eliminar el profesional.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {successToast && (
+        <div className="fixed top-5 right-5 z-50 bg-emerald-950 border border-emerald-500 text-emerald-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          <span className="text-sm font-semibold">{successToast}</span>
+        </div>
+      )}
+
       {/* Top Header Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-zinc-900/90 border border-zinc-800 p-5 rounded-2xl shadow-xl">
         <div className="space-y-1">
@@ -240,7 +392,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
             </span>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Administra los perfiles, especialidades técnicas, días de atención y servicios asignados a cada profesional.
+            Modifica nombres, fotos, especialidades, días de atención y asignación de servicios de cada profesional.
           </p>
         </div>
 
@@ -256,11 +408,11 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
       </div>
 
       {/* Filter Bar: By Assigned Service */}
-      <div className="flex items-center justify-between gap-4 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+      <div className="flex items-center justify-between gap-4 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs overflow-x-auto">
+        <div className="flex items-center gap-2 pb-1 sm:pb-0">
           <span className="text-zinc-400 flex items-center gap-1 font-semibold whitespace-nowrap">
             <Filter className="w-3.5 h-3.5 text-amber-500" />
-            Filtrar por servicio asignado:
+            Filtrar por servicio:
           </span>
           <button
             onClick={() => setSelectedServiceFilter('all')}
@@ -302,7 +454,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
             <div
               key={barber.id}
               id={`staff-card-${barber.id}`}
-              className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition-all flex flex-col justify-between shadow-lg"
+              className={`bg-zinc-900/80 border rounded-2xl p-5 transition-all flex flex-col justify-between shadow-lg ${
+                barber.active ? 'border-zinc-800 hover:border-zinc-700' : 'border-zinc-800/60 opacity-75'
+              }`}
             >
               <div className="space-y-4">
                 {/* Top Profile Header */}
@@ -318,17 +472,26 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                         referrerPolicy="no-referrer"
                         className="w-14 h-14 rounded-xl object-cover border border-zinc-700 shadow-md"
                       />
-                      <span
-                        className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 ${
+                      <button
+                        type="button"
+                        onClick={() => handleQuickToggleActive(barber)}
+                        title={barber.active ? 'Clic para desactivar' : 'Clic para activar'}
+                        className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 transition-transform hover:scale-125 ${
                           barber.active ? 'bg-emerald-500' : 'bg-zinc-600'
                         }`}
-                        title={barber.active ? 'Activo' : 'Inactivo'}
                       />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                        {barber.name}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-zinc-100">
+                          {barber.name}
+                        </h3>
+                        {!barber.active && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">
+                            Pausado
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-amber-400 font-medium">
                         {barber.role}
                       </p>
@@ -345,18 +508,18 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                     <button
                       type="button"
                       onClick={() => openEditBarberModal(barber)}
-                      className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 border border-zinc-700/60 transition-colors"
-                      title="Editar perfil"
+                      className="p-2 rounded-lg bg-zinc-800/90 hover:bg-amber-500 hover:text-zinc-950 text-zinc-300 border border-zinc-700/80 transition-all font-semibold"
+                      title="Editar nombre, foto o datos"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteBarber(barber.id, barber.name)}
-                      className="p-2 rounded-lg bg-zinc-800/80 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-zinc-700/60 hover:border-rose-900/50 transition-colors"
+                      onClick={() => setDeletingBarber(barber)}
+                      className="p-2 rounded-lg bg-zinc-800/90 hover:bg-rose-950/80 text-zinc-400 hover:text-rose-400 border border-zinc-700/80 hover:border-rose-800 transition-all"
                       title="Eliminar peluquero"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -451,9 +614,19 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
 
               {/* Bottom Quick Action: See Calendar */}
               <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs">
-                <span className="text-zinc-500">
-                  ID: <code className="text-zinc-400">{barber.id}</code>
-                </span>
+                <button
+                  type="button"
+                  onClick={() => handleQuickToggleActive(barber)}
+                  className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                    barber.active
+                      ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/60'
+                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700'
+                  }`}
+                >
+                  <Power className="w-3 h-3" />
+                  <span>{barber.active ? 'Activo en Turnos' : 'Desactivado'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => onNavigateToCalendar?.(barber.id)}
@@ -476,24 +649,82 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
                 <User className="w-5 h-5 text-amber-500" />
-                {editingBarber ? `Editar Perfil: ${editingBarber.name}` : 'Registrar Nuevo Peluquero'}
+                {editingBarber ? `Editar Profesional: ${editingBarber.name}` : 'Registrar Nuevo Peluquero'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-200"
+                className="text-zinc-400 hover:text-zinc-200 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 rounded-lg bg-rose-950/50 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
-                <X className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                <span>{formError}</span>
+              <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="font-semibold">{formError}</p>
+                  {formError.includes('PIN') && onRequestPinModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        onRequestPinModal();
+                      }}
+                      className="text-amber-400 underline hover:text-amber-300 font-bold block pt-1"
+                    >
+                      Reingresar PIN de administrador ahora →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
             <form onSubmit={handleSubmitForm} className="space-y-4 text-xs">
+              {/* Photo & Live Avatar Preview */}
+              <div className="bg-zinc-950/80 p-4 rounded-xl border border-zinc-800 space-y-3">
+                <label className="block text-zinc-300 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
+                  Foto de Perfil & Avatar
+                </label>
+
+                <div className="flex items-center gap-4">
+                  <img
+                    src={avatarUrl || PRESET_AVATARS[0].url}
+                    alt="Preview"
+                    referrerPolicy="no-referrer"
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-500 shadow-md flex-shrink-0"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="url"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      placeholder="Pega un enlace de imagen o selecciona un preset abajo..."
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none text-xs"
+                    />
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                      <span className="text-[10px] text-zinc-400 whitespace-nowrap">Presets rápidos:</span>
+                      {PRESET_AVATARS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setAvatarUrl(preset.url)}
+                          className={`w-7 h-7 rounded-lg overflow-hidden border transition-all flex-shrink-0 ${
+                            avatarUrl === preset.url ? 'border-amber-500 scale-110 ring-2 ring-amber-500/50' : 'border-zinc-700 hover:border-zinc-500'
+                          }`}
+                          title={preset.name}
+                        >
+                          <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Name and Role */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-zinc-300 font-semibold mb-1">Nombre Completo *</label>
@@ -502,64 +733,53 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ej. Lucas Domínguez"
-                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-amber-500 outline-none font-medium"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-zinc-300 font-semibold mb-1">Rol / Puesto *</label>
+                  <label className="block text-zinc-300 font-semibold mb-1">Puesto o Especialidad Principal *</label>
                   <input
                     type="text"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    placeholder="Ej. Master Barber & Especialista en Fades"
-                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none"
+                    placeholder="Ej. Master Barber & Fade Specialist"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-amber-500 outline-none font-medium"
                     required
                   />
                 </div>
               </div>
 
+              {/* Phone & Bio */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-300 font-semibold mb-1">Teléfono Celular (WhatsApp)</label>
+                  <label className="block text-zinc-300 font-semibold mb-1">Teléfono Móvil (WhatsApp)</label>
                   <input
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+54 9 11 2233-4455"
+                    placeholder="+54 9 351 123-4567"
                     className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-zinc-300 font-semibold mb-1">URL Foto / Avatar</label>
+                  <label className="block text-zinc-300 font-semibold mb-1">Breve Descripción / Bio</label>
                   <input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    type="text"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Especialista en navaja, 8 años en el rubro..."
                     className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none"
                   />
                 </div>
               </div>
 
-              {/* Bio */}
-              <div>
-                <label className="block text-zinc-300 font-semibold mb-1">Bio / Perfil Profesional</label>
-                <textarea
-                  rows={2}
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Años de experiencia, cursos realizados o estilo característico..."
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:border-amber-500 outline-none resize-none"
-                />
-              </div>
-
               {/* Specialties Manager */}
-              <div className="space-y-2 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
+              <div className="space-y-2 bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800">
                 <label className="block text-zinc-300 font-semibold">
-                  Especialidades Técnicas
+                  Especialidades Técnicas (Etiquetas)
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -572,13 +792,13 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                         handleAddSpecialty();
                       }
                     }}
-                    placeholder="Ej. Skin fade, Navaja tradicional, Barba perfilada, Colorimetría..."
+                    placeholder="Ej. Skin fade, Barboterapia, Colorimetría, Navaja..."
                     className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-100 focus:border-amber-500 outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleAddSpecialty}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-800 text-amber-400 hover:bg-zinc-700 font-semibold"
+                    className="px-3.5 py-1.5 rounded-lg bg-zinc-800 text-amber-400 hover:bg-zinc-700 font-semibold transition-colors"
                   >
                     Añadir
                   </button>
@@ -604,10 +824,10 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
               </div>
 
               {/* Allowed Services Assignment */}
-              <div className="space-y-2 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
+              <div className="space-y-2 bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800">
                 <div className="flex items-center justify-between">
                   <label className="text-zinc-300 font-semibold">
-                    Asignación de Servicios que puede realizar *
+                    Servicios Asignados que puede realizar *
                   </label>
                   <span className="text-[10px] text-zinc-500">
                     Solo podrá ser elegido para estos servicios
@@ -622,7 +842,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                         key={serv.id}
                         className={`p-2.5 rounded-lg border flex items-center justify-between cursor-pointer transition-colors ${
                           isChecked
-                            ? 'bg-amber-950/20 border-amber-500 text-amber-300'
+                            ? 'bg-amber-950/20 border-amber-500 text-amber-300 font-semibold'
                             : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
                         }`}
                       >
@@ -633,9 +853,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
                             onChange={() => handleToggleService(serv.id)}
                             className="rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
                           />
-                          <span className="font-semibold text-zinc-200">{serv.name}</span>
+                          <span className="text-zinc-200">{serv.name}</span>
                         </div>
-                        <span className="text-[10px] text-zinc-500">{serv.durationMinutes}m</span>
+                        <span className="text-[10px] text-zinc-500">${serv.price.toLocaleString('es-AR')}</span>
                       </label>
                     );
                   })}
@@ -643,9 +863,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
               </div>
 
               {/* Working Days */}
-              <div className="space-y-2 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
+              <div className="space-y-2 bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800">
                 <label className="block text-zinc-300 font-semibold">
-                  Días Laborales Asignados
+                  Días de Trabajo en la Semana
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
                   {WEEK_DAYS.map((wd) => {
@@ -669,16 +889,16 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
               </div>
 
               {/* Active Toggle */}
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex items-center gap-2 pt-1 bg-zinc-950/40 p-3 rounded-xl border border-zinc-800">
                 <input
                   type="checkbox"
                   id="active-checkbox"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                  className="rounded border-zinc-700 text-amber-500 focus:ring-amber-500 w-4 h-4"
                 />
-                <label htmlFor="active-checkbox" className="text-zinc-300 font-medium cursor-pointer">
-                  Peluquero activo para recibir turnos en el calendario
+                <label htmlFor="active-checkbox" className="text-zinc-200 font-medium cursor-pointer">
+                  Profesional activo para agendar citas en el sistema
                 </label>
               </div>
 
@@ -686,20 +906,86 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 font-semibold"
+                  className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 font-semibold transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold shadow-md shadow-amber-500/20"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold shadow-md shadow-amber-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Guardando...' : editingBarber ? 'Actualizar Peluquero' : 'Registrar Peluquero'}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <span>{editingBarber ? 'Actualizar Peluquero' : 'Registrar Peluquero'}</span>
+                  )}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Custom Confirmation Modal for Deleting (Eliminates iframe confirm() suppression) */}
+      {deletingBarber && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-bold text-zinc-100">
+                ¿Eliminar a {deletingBarber.name}?
+              </h3>
+              <p className="text-xs text-zinc-400">
+                Esta acción removerá a este profesional del equipo y ya no estará disponible para turnos.
+              </p>
+            </div>
+
+            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center gap-3">
+              <img
+                src={deletingBarber.avatarUrl}
+                alt={deletingBarber.name}
+                className="w-12 h-12 rounded-lg object-cover border border-zinc-700"
+              />
+              <div className="text-left">
+                <p className="text-sm font-bold text-zinc-200">{deletingBarber.name}</p>
+                <p className="text-xs text-amber-400">{deletingBarber.role}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeletingBarber(null)}
+                className="w-1/2 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-xs transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="w-1/2 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Eliminando...</span>
+                  </>
+                ) : (
+                  <span>Sí, Eliminar</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

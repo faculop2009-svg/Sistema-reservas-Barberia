@@ -159,6 +159,7 @@ export const DEFAULT_SETTINGS: BusinessSettings = {
   adminPin: '1234',
   currencySymbol: '$',
   instagram: '@barberia.vintage',
+  timezone: 'America/Argentina/Cordoba',
   reminderTemplate:
     '💈 *Recordatorio de Turno en {shopName}*\n\nHola *{clientName}*, te recordamos tu cita agendada:\n\n✂️ *Servicio:* {serviceName}\n📅 *Fecha:* {dateFormatted}\n⏰ *Hora:* {time} hs\n💈 *Profesional:* {barberName}\n⏳ *Duración:* {duration} min\n💵 *Total:* ${price}\n📍 *Lugar:* {address}\n\n*Código de reserva:* {code}\n\n¿Necesitas reprogramar o cancelar? Por favor avísanos con anticipación respondiendo a este mensaje. ¡Te esperamos!',
 };
