@@ -1,4 +1,4 @@
-import { BarberService, Barber, BusinessSettings } from '../types.ts';
+import { BarberService, Barber, BusinessSettings, Review } from '../types.ts';
 
 export const DEFAULT_SERVICES: BarberService[] = [
   {
@@ -163,3 +163,142 @@ export const DEFAULT_SETTINGS: BusinessSettings = {
   reminderTemplate:
     '💈 *Recordatorio de Turno en {shopName}*\n\nHola *{clientName}*, te recordamos tu cita agendada:\n\n✂️ *Servicio:* {serviceName}\n📅 *Fecha:* {dateFormatted}\n⏰ *Hora:* {time} hs\n💈 *Profesional:* {barberName}\n⏳ *Duración:* {duration} min\n💵 *Total:* ${price}\n📍 *Lugar:* {address}\n\n*Código de reserva:* {code}\n\n¿Necesitas reprogramar o cancelar? Por favor avísanos con anticipación respondiendo a este mensaje. ¡Te esperamos!',
 };
+
+export const DEFAULT_REVIEWS: Review[] = [
+  {
+    id: 'rev-1',
+    clientName: 'Juan Pablo Morales',
+    rating: 5,
+    comment:
+      'Excelente experiencia desde que entrás. Llegué con el turno reservado por la web y me atendieron al minuto exacto. El ritual de toalla caliente y el degradé que me hizo Alex Silva quedaron de diez. ¡Volveré seguro!',
+    date: '2026-09-08',
+    serviceId: 'corte_barba',
+    serviceName: 'Corte + Barba (Combo Completo)',
+    barberId: 'barber-1',
+    barberName: 'Alejandro "Alex" Silva',
+    verifiedClient: true,
+    tags: ['Puntualidad impecable', 'Toalla caliente', 'Degradé perfecto'],
+    likesCount: 14,
+    ownerReply: {
+      text: '¡Muchas gracias Juan Pablo! Un placer tenerte en la barbería. Te esperamos para el próximo mantenimiento.',
+      date: '2026-09-08',
+      author: 'La Docta Barbería',
+    },
+  },
+  {
+    id: 'rev-2',
+    clientName: 'Lucas Fernández',
+    rating: 5,
+    comment:
+      'La mejor barbería de la zona sin dudas. Muy prolijo todo, herramientas impecables y desinfectadas a la vista. El asesoramiento de corte según mi tipo de rostro fue clave. Buen café y buena música.',
+    date: '2026-09-05',
+    serviceId: 'corte',
+    serviceName: 'Corte de Cabello',
+    barberId: 'barber-1',
+    barberName: 'Alejandro "Alex" Silva',
+    verifiedClient: true,
+    tags: ['Ambiente y música', 'Higiene de 10', 'Asesoramiento'],
+    likesCount: 9,
+  },
+  {
+    id: 'rev-3',
+    clientName: 'Gonzalo Rossi',
+    rating: 5,
+    comment:
+      'Llevo barba tupida hace años y siempre me costaba encontrar a alguien que la entienda de verdad. Martín Morales es un artesano con la navaja tradicional. Delineado nítido y productos de aroma increíble.',
+    date: '2026-09-02',
+    serviceId: 'barba',
+    serviceName: 'Arreglo & Perfilado de Barba',
+    barberId: 'barber-2',
+    barberName: 'Martín Morales',
+    verifiedClient: true,
+    tags: ['Navaja tradicional', 'Detallista', 'Puntualidad'],
+    likesCount: 8,
+    ownerReply: {
+      text: '¡Grande Gonzalo! El cuidado de la barba es un ritual sagrado para nosotros. ¡Nos vemos en unas semanas!',
+      date: '2026-09-03',
+      author: 'Martín Morales',
+    },
+  },
+  {
+    id: 'rev-4',
+    clientName: 'Matías E. Gómez',
+    rating: 5,
+    comment:
+      'Me hice una decoloración platinada con Camila y el resultado superó las expectativas. Cuidó muchísimo el pelo, no picó nada el cuero cabelludo y el tono ceniza quedó homogéneo y brillante.',
+    date: '2026-08-28',
+    serviceId: 'color',
+    serviceName: 'Coloración & Tintura',
+    barberId: 'barber-3',
+    barberName: 'Camila Rostagno',
+    verifiedClient: true,
+    tags: ['Colorimetría pro', 'Sin daño capilar', 'Atención personalizada'],
+    likesCount: 11,
+  },
+  {
+    id: 'rev-5',
+    clientName: 'Rodrigo Valenzuela',
+    rating: 5,
+    comment:
+      'El sistema de reserva de turnos es comodísimo. Te llega el WhatsApp con la confirmación y el recordatorio el día anterior. Nico Benítez me hizo un Mid Fade rápido y super limpio. 100% recomendable.',
+    date: '2026-08-22',
+    serviceId: 'corte',
+    serviceName: 'Corte de Cabello',
+    barberId: 'barber-4',
+    barberName: 'Nicolás "Nico" Benítez',
+    verifiedClient: true,
+    tags: ['Recordatorio WhatsApp', 'Rápido y prolijo', 'Buen precio'],
+    likesCount: 6,
+  },
+  {
+    id: 'rev-6',
+    clientName: 'Esteban Morales',
+    rating: 4,
+    comment:
+      'Excelente atención y profesionalismo. Muy puntuales con el horario del turno. El corte y la barba quedaron perfectos. Como única sugerencia agregar más opciones de bebidas frías en la espera, por lo demás impecable.',
+    date: '2026-08-15',
+    serviceId: 'corte_barba',
+    serviceName: 'Corte + Barba (Combo Completo)',
+    barberId: 'barber-2',
+    barberName: 'Martín Morales',
+    verifiedClient: true,
+    tags: ['Atención cordial', 'Técnica impecable', 'Puntualidad'],
+    likesCount: 4,
+    ownerReply: {
+      text: '¡Muchas gracias por la reseña y la sugerencia Esteban! Ya incorporamos heladera con gaseosas y aguas saborizadas bien frías para la espera. ¡Te esperamos pronto!',
+      date: '2026-08-16',
+      author: 'La Docta Barbería',
+    },
+  },
+  {
+    id: 'rev-7',
+    clientName: 'Santiago Giménez',
+    rating: 5,
+    comment:
+      'Vengo cada 15 días sagrado. El ambiente es super relajado, la amabilidad de todos los chicos te hace sentir en casa y la precisión del corte es constante, nunca falla.',
+    date: '2026-08-10',
+    serviceId: 'corte',
+    serviceName: 'Corte de Cabello',
+    barberId: 'barber-1',
+    barberName: 'Alejandro "Alex" Silva',
+    verifiedClient: true,
+    tags: ['Ambiente familiar', 'Precisión constante', 'Puntualidad'],
+    likesCount: 7,
+  },
+  {
+    id: 'rev-8',
+    clientName: 'Federico Albarracín',
+    rating: 5,
+    comment:
+      'Hacía mucho que no encontraba un barbero que respetara exactamente la línea de barba que le pido. Se toman el tiempo que corresponde y no apuran el servicio. Vale cada centavo.',
+    date: '2026-08-01',
+    serviceId: 'barba',
+    serviceName: 'Arreglo & Perfilado de Barba',
+    barberId: 'barber-1',
+    barberName: 'Alejandro "Alex" Silva',
+    verifiedClient: true,
+    tags: ['Perfilado simétrico', 'Dedicación y tiempo', 'Recomendado 100%'],
+    likesCount: 5,
+  },
+];
+

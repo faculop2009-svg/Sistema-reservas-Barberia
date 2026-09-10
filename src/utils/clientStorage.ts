@@ -5,11 +5,14 @@ import {
   BusinessSettings,
   CalendarBlock,
   ScheduleSlot,
+  Review,
+  CreateReviewPayload,
 } from '../types.ts';
 import {
   DEFAULT_BARBERS,
   DEFAULT_SERVICES,
   DEFAULT_SETTINGS,
+  DEFAULT_REVIEWS,
 } from '../data/defaults.ts';
 
 const STORAGE_KEYS = {
@@ -18,7 +21,9 @@ const STORAGE_KEYS = {
   BARBERS: 'barber_barbers_v1',
   APPOINTMENTS: 'barber_appointments_v1',
   BLOCKS: 'barber_blocks_v1',
+  REVIEWS: 'barber_reviews_v1',
 };
+
 
 // Initial sample appointments if none in localStorage
 function getInitialAppointments(): Appointment[] {
@@ -432,3 +437,136 @@ export function createClientAppointment(data: {
 
   return { appointment: newAppointment, whatsappUrl };
 }
+
+// -------------------------------------------------------------
+// CLIENT REVIEWS METHODS
+// -------------------------------------------------------------
+export function loadClientReviews(): Review[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(DEFAULT_REVIEWS));
+      return DEFAULT_REVIEWS;
+    }
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_REVIEWS;
+  } catch {
+    return DEFAULT_REVIEWS;
+  }
+}
+
+export function saveClientReviews(reviews: Review[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
+  } catch (err) {
+    console.error('Error saving reviews to localStorage:', err);
+  }
+}
+
+export function addClientReview(payload: CreateReviewPayload): Review {
+  const reviews = loadClientReviews();
+  const services = loadClientServices();
+  const barbers = loadClientBarbers();
+
+  const service = payload.serviceId ? services.find((s) => s.id === payload.serviceId) : undefined;
+  const barber = payload.barberId ? barbers.find((b) => b.id === payload.barberId) : undefined;
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  const newReview: Review = {
+    id: `rev-local-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    clientName: payload.clientName.trim(),
+    rating: Math.max(1, Math.min(5, payload.rating)),
+    comment: payload.comment.trim(),
+    date: todayStr,
+    serviceId: service ? service.id : undefined,
+    serviceName: service ? service.name : undefined,
+    barberId: barber ? barber.id : undefined,
+    barberName: barber ? barber.name : undefined,
+    verifiedClient: true,
+    tags: payload.tags && payload.tags.length > 0 ? payload.tags : ['Atención de 10', 'Puntualidad'],
+    likesCount: 0,
+  };
+
+  reviews.unshift(newReview);
+  saveClientReviews(reviews);
+  return newReview;
+}
+
+export function likeClientReview(id: string): Review | null {
+  const reviews = loadClientReviews();
+  const r = reviews.find((item) => item.id === id);
+  if (!r) return null;
+  r.likesCount = (r.likesCount || 0) + 1;
+  saveClientReviews(reviews);
+  return r;
+}
+
+export function deleteClientReview(id: string): boolean {
+  const reviews = loadClientReviews();
+  const initialLen = reviews.length;
+  const filtered = reviews.filter((r) => r.id !== id);
+  if (filtered.length !== initialLen) {
+    saveClientReviews(filtered);
+    removeMyCreatedReviewId(id);
+    return true;
+  }
+  return false;
+}
+
+export function replyClientReview(id: string, replyText: string, author?: string): Review | null {
+  const reviews = loadClientReviews();
+  const r = reviews.find((item) => item.id === id);
+  if (!r) return null;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  r.ownerReply = {
+    text: replyText.trim(),
+    date: todayStr,
+    author: author || 'La Docta Barbería',
+  };
+  saveClientReviews(reviews);
+  return r;
+}
+
+export function deleteClientReviewReply(id: string): Review | null {
+  const reviews = loadClientReviews();
+  const r = reviews.find((item) => item.id === id);
+  if (!r) return null;
+  delete r.ownerReply;
+  saveClientReviews(reviews);
+  return r;
+}
+
+const MY_REVIEWS_KEY = 'barber_my_created_reviews';
+
+export function getMyCreatedReviewIds(): string[] {
+  try {
+    const raw = localStorage.getItem(MY_REVIEWS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addMyCreatedReviewId(id: string): void {
+  try {
+    const ids = getMyCreatedReviewIds();
+    if (!ids.includes(id)) {
+      ids.push(id);
+      localStorage.setItem(MY_REVIEWS_KEY, JSON.stringify(ids));
+    }
+  } catch {}
+}
+
+export function removeMyCreatedReviewId(id: string): void {
+  try {
+    const ids = getMyCreatedReviewIds().filter((i) => i !== id);
+    localStorage.setItem(MY_REVIEWS_KEY, JSON.stringify(ids));
+  } catch {}
+}
+
+

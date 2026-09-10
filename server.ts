@@ -24,8 +24,17 @@ import {
   createNewAppointment,
   formatWhatsAppMessage,
   buildWhatsAppUrl,
+  loadReviews,
+  saveReviews,
+  createReview,
+  likeReview,
+  replyToReview,
+  deleteReviewReply,
+  deleteReview,
+  getReviewsSummary,
 } from './server/storage.ts';
-import { BookingPayload, Barber } from './src/types.ts';
+import { BookingPayload, Barber, CreateReviewPayload } from './src/types.ts';
+
 
 async function startServer() {
   const app = express();
@@ -438,6 +447,101 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
     }));
 
     res.json(enriched);
+  });
+
+  // -------------------------------------------------------------
+  // Reviews API
+  // -------------------------------------------------------------
+  app.get('/api/reviews', (req, res) => {
+    const reviews = loadReviews();
+    const summary = getReviewsSummary();
+    res.json({ reviews, summary });
+  });
+
+  app.post('/api/reviews', (req, res) => {
+    try {
+      const { clientName, rating, comment, serviceId, barberId, tags } = req.body;
+      if (!clientName || !clientName.trim()) {
+        return res.status(400).json({ error: 'El nombre es obligatorio' });
+      }
+      if (!rating || Number(rating) < 1 || Number(rating) > 5) {
+        return res.status(400).json({ error: 'La calificación debe ser entre 1 y 5 estrellas' });
+      }
+      if (!comment || !comment.trim()) {
+        return res.status(400).json({ error: 'El comentario de la reseña es obligatorio' });
+      }
+
+      const newReview = createReview({
+        clientName: clientName.trim(),
+        rating: Number(rating),
+        comment: comment.trim(),
+        serviceId: serviceId || undefined,
+        barberId: barberId || undefined,
+        tags: Array.isArray(tags) ? tags : undefined,
+      });
+
+      const summary = getReviewsSummary();
+      res.status(201).json({ review: newReview, summary });
+    } catch (err: any) {
+      console.error('Error creating review:', err);
+      res.status(500).json({ error: 'Error al registrar la reseña' });
+    }
+  });
+
+  app.post('/api/reviews/:id/like', (req, res) => {
+    const { id } = req.params;
+    const updated = likeReview(id);
+    if (!updated) {
+      return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    res.json(updated);
+  });
+
+  app.post('/api/reviews/:id/reply', requireAdminAuth, (req, res) => {
+    const { id } = req.params;
+    const { replyText, author } = req.body;
+    if (!replyText || !replyText.trim()) {
+      return res.status(400).json({ error: 'El texto de la respuesta es obligatorio' });
+    }
+    const updated = replyToReview(id, replyText, author);
+    if (!updated) {
+      return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    res.json(updated);
+  });
+
+  app.delete('/api/reviews/:id', (req, res) => {
+    const { id } = req.params;
+    const settings = loadSettings();
+    const validPin = (settings.adminPin || '1234').trim();
+    const providedPin = (
+      (req.headers['x-admin-pin'] as string) ||
+      (req.query.adminPin as string) ||
+      (req.body && req.body.adminPin) ||
+      ''
+    ).trim();
+
+    const isClientAuthor = (req.headers['x-client-author'] === 'true') || id.startsWith('rev-local-');
+
+    if (!isClientAuthor && (!providedPin || providedPin !== validPin)) {
+      return res.status(401).json({ error: 'Acceso no autorizado. Se requiere PIN de administrador o ser autor de la reseña.' });
+    }
+
+    const deleted = deleteReview(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    const summary = getReviewsSummary();
+    res.json({ success: true, message: 'Reseña eliminada con éxito', summary });
+  });
+
+  app.delete('/api/reviews/:id/reply', requireAdminAuth, (req, res) => {
+    const { id } = req.params;
+    const updated = deleteReviewReply(id);
+    if (!updated) {
+      return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    res.json(updated);
   });
 
   // Background automated reminders check (every 5 minutes)

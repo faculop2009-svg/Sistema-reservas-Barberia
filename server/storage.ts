@@ -8,8 +8,10 @@ import {
   Barber,
   CalendarBlock,
   ScheduleSlot,
+  Review,
+  CreateReviewPayload,
 } from '../src/types.ts';
-import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS } from '../src/data/defaults.ts';
+import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS, DEFAULT_REVIEWS } from '../src/data/defaults.ts';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const APPOINTMENTS_FILE = path.join(DATA_DIR, 'appointments.json');
@@ -17,6 +19,8 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BARBERS_FILE = path.join(DATA_DIR, 'barbers.json');
 const SERVICES_FILE = path.join(DATA_DIR, 'services.json');
 const BLOCKS_FILE = path.join(DATA_DIR, 'calendar_blocks.json');
+const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
+
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -192,6 +196,153 @@ export function deleteService(id: string): void {
   services = services.filter((s) => s.id !== id);
   saveServices(services);
 }
+
+// -------------------------------------------------------------
+// REVIEWS & TESTIMONIALS
+// -------------------------------------------------------------
+export function loadReviews(): Review[] {
+  ensureDataDir();
+  if (!fs.existsSync(REVIEWS_FILE)) {
+    fs.writeFileSync(REVIEWS_FILE, JSON.stringify(DEFAULT_REVIEWS, null, 2), 'utf-8');
+    return DEFAULT_REVIEWS;
+  }
+  try {
+    const raw = fs.readFileSync(REVIEWS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.length === 0) {
+      return DEFAULT_REVIEWS;
+    }
+    return parsed;
+  } catch (err) {
+    console.error('Error loading reviews:', err);
+    return DEFAULT_REVIEWS;
+  }
+}
+
+export function saveReviews(reviews: Review[]): void {
+  ensureDataDir();
+  fs.writeFileSync(REVIEWS_FILE, JSON.stringify(reviews, null, 2), 'utf-8');
+}
+
+export function getReviewsSummary(): {
+  averageRating: number;
+  totalCount: number;
+  distribution: Record<number, number>;
+  percentRecommended: number;
+} {
+  const reviews = loadReviews();
+  const totalCount = reviews.length;
+  if (totalCount === 0) {
+    return {
+      averageRating: 5.0,
+      totalCount: 0,
+      distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+      percentRecommended: 100,
+    };
+  }
+
+  const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  let sum = 0;
+  let positiveCount = 0;
+
+  for (const r of reviews) {
+    const star = Math.max(1, Math.min(5, Math.round(r.rating)));
+    distribution[star] = (distribution[star] || 0) + 1;
+    sum += r.rating;
+    if (r.rating >= 4) {
+      positiveCount++;
+    }
+  }
+
+  const averageRating = Number((sum / totalCount).toFixed(1));
+  const percentRecommended = Math.round((positiveCount / totalCount) * 100);
+
+  return {
+    averageRating,
+    totalCount,
+    distribution,
+    percentRecommended,
+  };
+}
+
+export function createReview(payload: CreateReviewPayload): Review {
+  const reviews = loadReviews();
+  const services = loadServices();
+  const barbers = loadBarbers();
+
+  const service = payload.serviceId ? services.find((s) => s.id === payload.serviceId) : undefined;
+  const barber = payload.barberId ? barbers.find((b) => b.id === payload.barberId) : undefined;
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  const newReview: Review = {
+    id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    clientName: payload.clientName.trim(),
+    rating: Math.max(1, Math.min(5, payload.rating)),
+    comment: payload.comment.trim(),
+    date: todayStr,
+    serviceId: service ? service.id : undefined,
+    serviceName: service ? service.name : undefined,
+    barberId: barber ? barber.id : undefined,
+    barberName: barber ? barber.name : undefined,
+    verifiedClient: true,
+    tags: payload.tags && payload.tags.length > 0 ? payload.tags : ['Atención de 10', 'Puntualidad'],
+    likesCount: 0,
+  };
+
+  reviews.unshift(newReview);
+  saveReviews(reviews);
+  return newReview;
+}
+
+export function likeReview(id: string): Review | null {
+  const reviews = loadReviews();
+  const review = reviews.find((r) => r.id === id);
+  if (!review) return null;
+  review.likesCount = (review.likesCount || 0) + 1;
+  saveReviews(reviews);
+  return review;
+}
+
+export function replyToReview(id: string, replyText: string, author: string = 'La Docta Barbería'): Review | null {
+  const reviews = loadReviews();
+  const review = reviews.find((r) => r.id === id);
+  if (!review) return null;
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  review.ownerReply = {
+    text: replyText.trim(),
+    date: todayStr,
+    author: author.trim() || 'La Docta Barbería',
+  };
+
+  saveReviews(reviews);
+  return review;
+}
+
+export function deleteReviewReply(id: string): Review | null {
+  const reviews = loadReviews();
+  const review = reviews.find((r) => r.id === id);
+  if (!review) return null;
+  delete review.ownerReply;
+  saveReviews(reviews);
+  return review;
+}
+
+export function deleteReview(id: string): boolean {
+  let reviews = loadReviews();
+  const initialLength = reviews.length;
+  reviews = reviews.filter((r) => r.id !== id);
+  if (reviews.length === initialLength) return false;
+  saveReviews(reviews);
+  return true;
+}
+
 
 // -------------------------------------------------------------
 // CALENDAR BLOCKS & AVAILABILITY

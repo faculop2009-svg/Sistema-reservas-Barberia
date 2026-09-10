@@ -10,10 +10,12 @@ import {
   CalendarDays,
   Sparkles,
   Lock,
+  Star,
 } from 'lucide-react';
 import { BusinessSettings } from '../types.ts';
 
-export type AppView = 'book' | 'catalog' | 'calendar' | 'my-turns' | 'admin';
+export type AppView = 'book' | 'catalog' | 'calendar' | 'reviews' | 'my-turns' | 'admin';
+
 
 interface HeaderProps {
   settings: BusinessSettings;
@@ -133,6 +135,19 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
+              id="nav-btn-reviews"
+              onClick={() => setActiveView('reviews')}
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                activeView === 'reviews'
+                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5" />
+              <span>Reseñas</span>
+            </button>
+
+            <button
               id="nav-btn-my-turns"
               onClick={() => setActiveView('my-turns')}
               className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
@@ -142,7 +157,8 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Mi Turno</span>
+              <span className="hidden sm:inline">Mi Turno</span>
+              <span className="sm:hidden">Turno</span>
             </button>
 
             <div className="h-5 w-px bg-zinc-800 mx-1" />

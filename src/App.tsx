@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header, AppView } from './components/Header.tsx';
 import { ServiceSelector } from './components/ServiceSelector.tsx';
 import { DateTimeSelector } from './components/DateTimeSelector.tsx';
@@ -10,9 +10,10 @@ import { ShopSettingsModal } from './components/ShopSettingsModal.tsx';
 import { ServicesCatalog } from './components/ServicesCatalog.tsx';
 import { VisualCalendar } from './components/VisualCalendar.tsx';
 import { AdminPinModal } from './components/AdminPinModal.tsx';
-import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS } from './data/defaults.ts';
-import { BarberService, Barber, BusinessSettings, Appointment } from './types.ts';
-import { MessageCircle, CheckCircle, Clock, CalendarDays, Sparkles, BookOpen, Lock, Instagram } from 'lucide-react';
+import { ReviewsSection } from './components/ReviewsSection.tsx';
+import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS, DEFAULT_REVIEWS } from './data/defaults.ts';
+import { BarberService, Barber, BusinessSettings, Appointment, Review } from './types.ts';
+import { MessageCircle, CheckCircle, Clock, CalendarDays, Sparkles, BookOpen, Lock, Instagram, Star } from 'lucide-react';
 import {
   loadClientSettings,
   saveClientSettings,
@@ -22,6 +23,14 @@ import {
   saveClientBarbers,
   getClientAvailableSlotsForDate,
   createClientAppointment,
+  loadClientReviews,
+  addClientReview,
+  likeClientReview,
+  deleteClientReview,
+  replyClientReview,
+  deleteClientReviewReply,
+  getMyCreatedReviewIds,
+  addMyCreatedReviewId,
 } from './utils/clientStorage.ts';
 
 export default function App() {
@@ -29,6 +38,8 @@ export default function App() {
   const [settings, setSettings] = useState<BusinessSettings>(DEFAULT_SETTINGS);
   const [services, setServices] = useState<BarberService[]>(DEFAULT_SERVICES);
   const [barbers, setBarbers] = useState<Barber[]>(DEFAULT_BARBERS);
+  const [reviews, setReviews] = useState<Review[]>(DEFAULT_REVIEWS);
+
 
   // Booking Flow State
   const [selectedService, setSelectedService] = useState<BarberService>(DEFAULT_SERVICES[0]);
@@ -87,12 +98,13 @@ export default function App() {
     const initData = async () => {
       try {
         const currentPin = sessionStorage.getItem('barber_admin_pin') || '';
-        const [settRes, servRes, barbRes] = await Promise.all([
+        const [settRes, servRes, barbRes, revRes] = await Promise.all([
           fetch('/api/settings', {
             headers: currentPin ? { 'x-admin-pin': currentPin } : {},
           }).catch(() => null),
           fetch('/api/services').catch(() => null),
           fetch('/api/barbers').catch(() => null),
+          fetch('/api/reviews').catch(() => null),
         ]);
 
         if (settRes && settRes.ok) {
@@ -122,6 +134,13 @@ export default function App() {
         } else {
           setBarbers(loadClientBarbers());
         }
+
+        if (revRes && revRes.ok) {
+          const data = await revRes.json();
+          setReviews(data.reviews || []);
+        } else {
+          setReviews(loadClientReviews());
+        }
       } catch (err) {
         console.warn('Using client local storage fallback for initial data:', err);
         setSettings(loadClientSettings());
@@ -131,6 +150,7 @@ export default function App() {
           setSelectedService(cServices[0]);
         }
         setBarbers(loadClientBarbers());
+        setReviews(loadClientReviews());
       }
     };
     initData();
@@ -387,6 +407,138 @@ export default function App() {
     setActiveView('book');
   };
 
+  const handleAddReview = async (payload: {
+    clientName: string;
+    rating: number;
+    comment: string;
+    serviceId?: string;
+    barberId?: string;
+    tags?: string[];
+  }) => {
+    let created: Review | null = null;
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.review) {
+          created = data.review;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend unavailable, saving review locally:', err);
+    }
+    if (!created) {
+      created = addClientReview(payload);
+    }
+    if (created) {
+      addMyCreatedReviewId(created.id);
+      setReviews((prev) => [created!, ...prev.filter((r) => r.id !== created!.id)]);
+    }
+  };
+
+  const handleLikeReview = async (reviewId: string) => {
+    setReviews((prev) =>
+      prev.map((r) => (r.id === reviewId ? { ...r, likesCount: (r.likesCount || 0) + 1 } : r))
+    );
+
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/like`, { method: 'POST' });
+      if (!res.ok) {
+        likeClientReview(reviewId);
+      }
+    } catch {
+      likeClientReview(reviewId);
+    }
+  };
+
+  const handleReplyReview = async (reviewId: string, replyText: string, providedPin?: string) => {
+    const currentPin = providedPin || sessionStorage.getItem('barber_admin_pin') || (isAdminAuthenticated ? settings.adminPin : '');
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': currentPin,
+        },
+        body: JSON.stringify({ replyText, author: settings.shopName }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setReviews((prev) => prev.map((r) => (r.id === reviewId ? updated : r)));
+        replyClientReview(reviewId, replyText, settings.shopName);
+        return;
+      }
+    } catch (e) {
+      console.error('Error sending reply:', e);
+    }
+
+    const updated = replyClientReview(reviewId, replyText, settings.shopName);
+    if (updated) {
+      setReviews((prev) => prev.map((r) => (r.id === reviewId ? updated : r)));
+    }
+  };
+
+  const handleDeleteReviewReply = async (reviewId: string, providedPin?: string) => {
+    const currentPin = providedPin || sessionStorage.getItem('barber_admin_pin') || (isAdminAuthenticated ? settings.adminPin : '');
+    deleteClientReviewReply(reviewId);
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.id === reviewId) {
+          const clone = { ...r };
+          delete clone.ownerReply;
+          return clone;
+        }
+        return r;
+      })
+    );
+
+    try {
+      await fetch(`/api/reviews/${reviewId}/reply`, {
+        method: 'DELETE',
+        headers: { 'x-admin-pin': currentPin },
+      });
+    } catch (e) {
+      console.warn('Backend delete reply warning:', e);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string, providedPin?: string): Promise<boolean> => {
+    const pin = providedPin || sessionStorage.getItem('barber_admin_pin') || (isAdminAuthenticated ? settings.adminPin : '');
+    const myIds = getMyCreatedReviewIds();
+    const isMyReview = myIds.includes(reviewId) || reviewId.startsWith('rev-local-');
+
+    // Optimistically remove from state & local storage immediately
+    setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    deleteClientReview(reviewId);
+
+    try {
+      const headers: Record<string, string> = {};
+      if (pin) headers['x-admin-pin'] = pin;
+      if (isMyReview) headers['x-client-author'] = 'true';
+
+      const res = await fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        return true;
+      }
+    } catch (e) {
+      console.warn('Backend unavailable, deleted review locally:', e);
+    }
+    return true;
+  };
+
+  const reviewsAverage = useMemo(() => {
+    if (reviews.length === 0) return 5.0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return Number((sum / reviews.length).toFixed(1));
+  }, [reviews]);
+
   const selectedBarberObj = barbers.find((b) => b.id === selectedBarberId);
   const barberDisplayName = selectedBarberObj ? selectedBarberObj.name : 'Cualquier barbero disponible';
 
@@ -419,6 +571,25 @@ export default function App() {
                 <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
                   Selecciona tu corte o barba, el profesional y el horario disponible. Recibirás confirmación y recordatorio automático por WhatsApp.
                 </p>
+
+                {/* Trust Rating Badge */}
+                <div className="pt-2 flex items-center gap-2 justify-center sm:justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('reviews')}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/40 text-xs text-zinc-300 transition-all group"
+                  >
+                    <div className="flex items-center gap-0.5 text-amber-400">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span className="font-bold text-zinc-100">{reviewsAverage.toFixed(1)}</span>
+                    </div>
+                    <span className="text-zinc-500">•</span>
+                    <span className="text-zinc-400 group-hover:text-amber-400 transition-colors">
+                      {reviews.length} opiniones verificadas
+                    </span>
+                    <span className="text-amber-500 font-semibold underline text-[11px]">Ver Reseñas</span>
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-3 bg-zinc-950/80 border border-zinc-800 px-4 py-3 rounded-2xl text-xs text-zinc-300 flex-shrink-0 shadow-md">
@@ -529,6 +700,25 @@ export default function App() {
             <LookupAppointment
               settings={settings}
               onNewBookingClick={() => setActiveView('book')}
+            />
+          </div>
+        )}
+
+        {/* VIEW: REVIEWS & TESTIMONIALS */}
+        {activeView === 'reviews' && (
+          <div className="animate-in fade-in duration-200">
+            <ReviewsSection
+              reviews={reviews}
+              services={services}
+              barbers={barbers}
+              settings={settings}
+              isAdmin={isAdminAuthenticated}
+              onAddReview={handleAddReview}
+              onLikeReview={handleLikeReview}
+              onReplyReview={handleReplyReview}
+              onDeleteReviewReply={handleDeleteReviewReply}
+              onDeleteReview={handleDeleteReview}
+              onBookClick={() => setActiveView('book')}
             />
           </div>
         )}

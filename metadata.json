@@ -1,6 +1,6 @@
 {
   "name": "Turnos Barbería & Peluquería",
-  "description": "Sistema de gestión de peluqueros con especialidades, calendario visual interactivo con control de disponibilidad, catálogo de servicios con imágenes y reservas con recordatorios por WhatsApp.",
+  "description": "Sistema de gestión de barbería con reservas, recordatorios automáticos por WhatsApp, calendario interactivo, catálogo de servicios y módulo de reseñas y valoraciones verificadas.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

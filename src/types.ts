@@ -109,3 +109,33 @@ export interface BookingPayload {
   clientPhone: string;
   clientNotes?: string;
 }
+
+export interface Review {
+  id: string;
+  clientName: string;
+  rating: number; // 1 to 5
+  comment: string;
+  date: string; // YYYY-MM-DD or readable
+  serviceId?: string;
+  serviceName?: string;
+  barberId?: string;
+  barberName?: string;
+  verifiedClient?: boolean;
+  tags?: string[];
+  likesCount?: number;
+  ownerReply?: {
+    text: string;
+    date: string;
+    author: string;
+  };
+}
+
+export interface CreateReviewPayload {
+  clientName: string;
+  rating: number;
+  comment: string;
+  serviceId?: string;
+  barberId?: string;
+  tags?: string[];
+}
+
