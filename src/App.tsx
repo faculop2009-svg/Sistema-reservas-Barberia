@@ -8,6 +8,7 @@ import { LookupAppointment } from './components/LookupAppointment.tsx';
 import { AdminAgenda } from './components/AdminAgenda.tsx';
 import { ShopSettingsModal } from './components/ShopSettingsModal.tsx';
 import { ServicesCatalog } from './components/ServicesCatalog.tsx';
+import { ProductsSection } from './components/ProductsSection.tsx';
 import { VisualCalendar } from './components/VisualCalendar.tsx';
 import { AdminPinModal } from './components/AdminPinModal.tsx';
 import { ReviewsSection } from './components/ReviewsSection.tsx';
@@ -648,17 +649,29 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 2: SERVICES CATALOG */}
+        {/* VIEW 2: SERVICES CATALOG & MONTHLY PLANS */}
         {activeView === 'catalog' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <ServicesCatalog
               services={services}
+              settings={settings}
               isAdmin={isAdminAuthenticated}
               onSelectServiceAndBook={(serv) => {
                 setSelectedService(serv);
                 setActiveView('book');
               }}
               onServicesChange={handleServicesChange}
+            />
+          </div>
+        )}
+
+        {/* VIEW: STOCK DE PRODUCTOS */}
+        {activeView === 'products' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <ProductsSection
+              isAdmin={isAdminAuthenticated}
+              settings={settings}
+              whatsappNumber={settings.whatsappNumber}
             />
           </div>
         )}

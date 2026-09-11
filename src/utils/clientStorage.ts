@@ -7,12 +7,18 @@ import {
   ScheduleSlot,
   Review,
   CreateReviewPayload,
+  MonthlyPlan,
+  Subscriber,
+  Product,
 } from '../types.ts';
 import {
   DEFAULT_BARBERS,
   DEFAULT_SERVICES,
   DEFAULT_SETTINGS,
   DEFAULT_REVIEWS,
+  DEFAULT_MONTHLY_PLANS,
+  DEFAULT_PRODUCTS,
+  DEFAULT_SUBSCRIBERS,
 } from '../data/defaults.ts';
 
 const STORAGE_KEYS = {
@@ -22,6 +28,9 @@ const STORAGE_KEYS = {
   APPOINTMENTS: 'barber_appointments_v1',
   BLOCKS: 'barber_blocks_v1',
   REVIEWS: 'barber_reviews_v1',
+  PRODUCTS: 'barber_products_v1',
+  SUBSCRIBERS: 'barber_subscribers_v1',
+  MONTHLY_PLANS: 'barber_monthly_plans_v1',
 };
 
 
@@ -567,6 +576,165 @@ export function removeMyCreatedReviewId(id: string): void {
     const ids = getMyCreatedReviewIds().filter((i) => i !== id);
     localStorage.setItem(MY_REVIEWS_KEY, JSON.stringify(ids));
   } catch {}
+}
+
+// -------------------------------------------------------------
+// PRODUCTS & INVENTORY CLIENT STORAGE
+// -------------------------------------------------------------
+export function loadClientProducts(): Product[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return DEFAULT_PRODUCTS;
+}
+
+export function saveClientProducts(products: Product[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  } catch {}
+}
+
+export function addClientProduct(data: Omit<Product, 'id' | 'createdAt'>): Product {
+  const products = loadClientProducts();
+  const newProd: Product = {
+    ...data,
+    id: `prod-local-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+    price: Number(data.price) || 0,
+    stock: Math.max(0, Number(data.stock) || 0),
+    minStockAlert: Math.max(0, Number(data.minStockAlert) || 3),
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+  products.unshift(newProd);
+  saveClientProducts(products);
+  return newProd;
+}
+
+export function updateClientProduct(id: string, updates: Partial<Product>): Product | null {
+  const products = loadClientProducts();
+  const index = products.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+  products[index] = {
+    ...products[index],
+    ...updates,
+    price: updates.price !== undefined ? Number(updates.price) : products[index].price,
+    stock: updates.stock !== undefined ? Math.max(0, Number(updates.stock)) : products[index].stock,
+  };
+  saveClientProducts(products);
+  return products[index];
+}
+
+export function updateClientProductStock(id: string, delta: number): Product | null {
+  const products = loadClientProducts();
+  const index = products.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+  products[index].stock = Math.max(0, (products[index].stock || 0) + delta);
+  saveClientProducts(products);
+  return products[index];
+}
+
+export function deleteClientProduct(id: string): void {
+  const products = loadClientProducts().filter((p) => p.id !== id);
+  saveClientProducts(products);
+}
+
+// -------------------------------------------------------------
+// MONTHLY PLANS & SUBSCRIBERS CLIENT STORAGE
+// -------------------------------------------------------------
+export function loadClientMonthlyPlans(): MonthlyPlan[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.MONTHLY_PLANS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return DEFAULT_MONTHLY_PLANS;
+}
+
+export function saveClientMonthlyPlans(plans: MonthlyPlan[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.MONTHLY_PLANS, JSON.stringify(plans));
+  } catch {}
+}
+
+export function updateClientMonthlyPlan(id: string, updates: Partial<MonthlyPlan>): MonthlyPlan | null {
+  const plans = loadClientMonthlyPlans();
+  const index = plans.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+  const current = plans[index];
+  const updated: MonthlyPlan = {
+    ...current,
+    ...updates,
+    monthlyPrice: updates.monthlyPrice !== undefined ? Number(updates.monthlyPrice) : current.monthlyPrice,
+    singleServicePrice: updates.singleServicePrice !== undefined ? Number(updates.singleServicePrice) : current.singleServicePrice,
+    cutsPaid: updates.cutsPaid !== undefined ? Number(updates.cutsPaid) : current.cutsPaid,
+    cutsPerMonth: updates.cutsPerMonth !== undefined ? Number(updates.cutsPerMonth) : current.cutsPerMonth,
+    savingsAmount:
+      updates.savingsAmount !== undefined
+        ? Number(updates.savingsAmount)
+        : (updates.singleServicePrice || current.singleServicePrice) *
+          ((updates.cutsPerMonth || current.cutsPerMonth) - (updates.cutsPaid || current.cutsPaid)),
+  };
+  plans[index] = updated;
+  saveClientMonthlyPlans(plans);
+  return updated;
+}
+
+export function loadClientSubscribers(): Subscriber[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SUBSCRIBERS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return DEFAULT_SUBSCRIBERS;
+}
+
+export function saveClientSubscribers(subscribers: Subscriber[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.SUBSCRIBERS, JSON.stringify(subscribers));
+  } catch {}
+}
+
+export function addClientSubscriber(data: Omit<Subscriber, 'id' | 'createdAt'>): Subscriber {
+  const subscribers = loadClientSubscribers();
+  const newSub: Subscriber = {
+    ...data,
+    id: `sub-local-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+    createdAt: new Date().toISOString(),
+  };
+  subscribers.unshift(newSub);
+  saveClientSubscribers(subscribers);
+  return newSub;
+}
+
+export function updateClientSubscriber(id: string, updates: Partial<Subscriber>): Subscriber | null {
+  const subscribers = loadClientSubscribers();
+  const index = subscribers.findIndex((s) => s.id === id);
+  if (index === -1) return null;
+  subscribers[index] = { ...subscribers[index], ...updates };
+  saveClientSubscribers(subscribers);
+  return subscribers[index];
+}
+
+export function recordClientSubscriberCut(id: string, delta: number = 1): Subscriber | null {
+  const subscribers = loadClientSubscribers();
+  const index = subscribers.findIndex((s) => s.id === id);
+  if (index === -1) return null;
+  const current = subscribers[index].cutsUsedThisMonth || 0;
+  subscribers[index].cutsUsedThisMonth = Math.min(4, Math.max(0, current + delta));
+  saveClientSubscribers(subscribers);
+  return subscribers[index];
+}
+
+export function deleteClientSubscriber(id: string): void {
+  const subscribers = loadClientSubscribers().filter((s) => s.id !== id);
+  saveClientSubscribers(subscribers);
 }
 
 

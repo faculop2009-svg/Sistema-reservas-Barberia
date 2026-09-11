@@ -139,3 +139,51 @@ export interface CreateReviewPayload {
   tags?: string[];
 }
 
+export interface MonthlyPlan {
+  id: 'plan_corte' | 'plan_corte_barba' | string;
+  name: string;
+  serviceTarget: 'corte' | 'corte_barba';
+  targetServiceName: string;
+  cutsPerMonth: number; // 4
+  cutsPaid: number; // 3
+  singleServicePrice: number;
+  monthlyPrice: number;
+  savingsAmount: number; // monthly savings
+  billingCycle: 'debito_automatico_mensual';
+  description: string;
+  badge: string;
+  benefits: string[];
+  popular?: boolean;
+}
+
+export interface Subscriber {
+  id: string;
+  clientName: string;
+  clientPhone: string;
+  planId: 'plan_corte' | 'plan_corte_barba' | string;
+  planName: string;
+  monthlyFee: number;
+  startDate: string; // YYYY-MM-DD
+  nextBillingDate: string; // YYYY-MM-DD
+  status: 'active' | 'paused' | 'cancelled';
+  paymentMethod: 'debito_cbu' | 'debito_tarjeta' | 'debito_mercadopago';
+  cutsUsedThisMonth: number;
+  maxCutsPerMonth: number; // 4
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  brand?: string;
+  category: string;
+  price: number;
+  stock: number;
+  minStockAlert: number;
+  description: string;
+  imageUrl: string;
+  featured?: boolean;
+  createdAt?: string;
+}
+

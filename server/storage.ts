@@ -10,8 +10,19 @@ import {
   ScheduleSlot,
   Review,
   CreateReviewPayload,
+  MonthlyPlan,
+  Subscriber,
+  Product,
 } from '../src/types.ts';
-import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS, DEFAULT_REVIEWS } from '../src/data/defaults.ts';
+import {
+  DEFAULT_SERVICES,
+  DEFAULT_BARBERS,
+  DEFAULT_SETTINGS,
+  DEFAULT_REVIEWS,
+  DEFAULT_MONTHLY_PLANS,
+  DEFAULT_PRODUCTS,
+  DEFAULT_SUBSCRIBERS,
+} from '../src/data/defaults.ts';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const APPOINTMENTS_FILE = path.join(DATA_DIR, 'appointments.json');
@@ -20,6 +31,9 @@ const BARBERS_FILE = path.join(DATA_DIR, 'barbers.json');
 const SERVICES_FILE = path.join(DATA_DIR, 'services.json');
 const BLOCKS_FILE = path.join(DATA_DIR, 'calendar_blocks.json');
 const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
+const MONTHLY_PLANS_FILE = path.join(DATA_DIR, 'monthly_plans.json');
 
 
 function ensureDataDir() {
@@ -859,5 +873,203 @@ export function createNewAppointment(payload: BookingPayload): { appointment: Ap
     appointment: newApt,
     whatsappUrl,
   };
+}
+
+// -------------------------------------------------------------
+// PRODUCTS & INVENTORY MANAGEMENT
+// -------------------------------------------------------------
+export function loadProducts(): Product[] {
+  ensureDataDir();
+  if (!fs.existsSync(PRODUCTS_FILE)) {
+    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(DEFAULT_PRODUCTS, null, 2), 'utf-8');
+    return DEFAULT_PRODUCTS;
+  }
+  try {
+    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf-8');
+    const parsed: Product[] = JSON.parse(raw);
+    if (!parsed || parsed.length === 0) {
+      return DEFAULT_PRODUCTS;
+    }
+    return parsed;
+  } catch (err) {
+    console.error('Error loading products:', err);
+    return DEFAULT_PRODUCTS;
+  }
+}
+
+export function saveProducts(products: Product[]): void {
+  ensureDataDir();
+  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
+}
+
+export function createProduct(data: Omit<Product, 'id' | 'createdAt'>): Product {
+  const products = loadProducts();
+  const newProd: Product = {
+    ...data,
+    id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+    price: Number(data.price) || 0,
+    stock: Math.max(0, Number(data.stock) || 0),
+    minStockAlert: Math.max(0, Number(data.minStockAlert) || 3),
+    imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&auto=format&fit=crop&q=80',
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+  products.unshift(newProd);
+  saveProducts(products);
+  return newProd;
+}
+
+export function updateProduct(id: string, updates: Partial<Product>): Product {
+  const products = loadProducts();
+  const index = products.findIndex((p) => p.id === id);
+  if (index === -1) {
+    throw new Error('Producto no encontrado');
+  }
+  products[index] = {
+    ...products[index],
+    ...updates,
+    price: updates.price !== undefined ? Number(updates.price) : products[index].price,
+    stock: updates.stock !== undefined ? Math.max(0, Number(updates.stock)) : products[index].stock,
+    minStockAlert: updates.minStockAlert !== undefined ? Math.max(0, Number(updates.minStockAlert)) : products[index].minStockAlert,
+  };
+  saveProducts(products);
+  return products[index];
+}
+
+export function updateProductStock(id: string, delta: number): Product {
+  const products = loadProducts();
+  const index = products.findIndex((p) => p.id === id);
+  if (index === -1) {
+    throw new Error('Producto no encontrado');
+  }
+  const newStock = Math.max(0, (products[index].stock || 0) + delta);
+  products[index].stock = newStock;
+  saveProducts(products);
+  return products[index];
+}
+
+export function deleteProduct(id: string): void {
+  let products = loadProducts();
+  products = products.filter((p) => p.id !== id);
+  saveProducts(products);
+}
+
+// -------------------------------------------------------------
+// MONTHLY PLANS & SUBSCRIBERS MANAGEMENT
+// -------------------------------------------------------------
+export function loadMonthlyPlans(): MonthlyPlan[] {
+  ensureDataDir();
+  if (!fs.existsSync(MONTHLY_PLANS_FILE)) {
+    fs.writeFileSync(MONTHLY_PLANS_FILE, JSON.stringify(DEFAULT_MONTHLY_PLANS, null, 2), 'utf-8');
+    return DEFAULT_MONTHLY_PLANS;
+  }
+  try {
+    const raw = fs.readFileSync(MONTHLY_PLANS_FILE, 'utf-8');
+    const parsed: MonthlyPlan[] = JSON.parse(raw);
+    if (!parsed || parsed.length === 0) {
+      return DEFAULT_MONTHLY_PLANS;
+    }
+    return parsed;
+  } catch (err) {
+    console.error('Error loading monthly plans:', err);
+    return DEFAULT_MONTHLY_PLANS;
+  }
+}
+
+export function saveMonthlyPlans(plans: MonthlyPlan[]): void {
+  ensureDataDir();
+  fs.writeFileSync(MONTHLY_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+}
+
+export function updateMonthlyPlan(id: string, updates: Partial<MonthlyPlan>): MonthlyPlan {
+  const plans = loadMonthlyPlans();
+  const index = plans.findIndex((p) => p.id === id);
+  if (index === -1) {
+    throw new Error('Plan no encontrado');
+  }
+  const current = plans[index];
+  const updated: MonthlyPlan = {
+    ...current,
+    ...updates,
+    monthlyPrice: updates.monthlyPrice !== undefined ? Number(updates.monthlyPrice) : current.monthlyPrice,
+    singleServicePrice: updates.singleServicePrice !== undefined ? Number(updates.singleServicePrice) : current.singleServicePrice,
+    cutsPaid: updates.cutsPaid !== undefined ? Number(updates.cutsPaid) : current.cutsPaid,
+    cutsPerMonth: updates.cutsPerMonth !== undefined ? Number(updates.cutsPerMonth) : current.cutsPerMonth,
+    savingsAmount:
+      updates.savingsAmount !== undefined
+        ? Number(updates.savingsAmount)
+        : (updates.singleServicePrice || current.singleServicePrice) *
+          ((updates.cutsPerMonth || current.cutsPerMonth) - (updates.cutsPaid || current.cutsPaid)),
+  };
+  plans[index] = updated;
+  saveMonthlyPlans(plans);
+  return updated;
+}
+
+export function loadSubscribers(): Subscriber[] {
+  ensureDataDir();
+  if (!fs.existsSync(SUBSCRIBERS_FILE)) {
+    fs.writeFileSync(SUBSCRIBERS_FILE, JSON.stringify(DEFAULT_SUBSCRIBERS, null, 2), 'utf-8');
+    return DEFAULT_SUBSCRIBERS;
+  }
+  try {
+    const raw = fs.readFileSync(SUBSCRIBERS_FILE, 'utf-8');
+    const parsed: Subscriber[] = JSON.parse(raw);
+    if (!parsed || parsed.length === 0) {
+      return DEFAULT_SUBSCRIBERS;
+    }
+    return parsed;
+  } catch (err) {
+    console.error('Error loading subscribers:', err);
+    return DEFAULT_SUBSCRIBERS;
+  }
+}
+
+export function saveSubscribers(subscribers: Subscriber[]): void {
+  ensureDataDir();
+  fs.writeFileSync(SUBSCRIBERS_FILE, JSON.stringify(subscribers, null, 2), 'utf-8');
+}
+
+export function createSubscriber(data: Omit<Subscriber, 'id' | 'createdAt'>): Subscriber {
+  const subscribers = loadSubscribers();
+  const newSub: Subscriber = {
+    ...data,
+    id: `sub-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+    cutsUsedThisMonth: Number(data.cutsUsedThisMonth) || 0,
+    maxCutsPerMonth: 4,
+    status: data.status || 'active',
+    createdAt: new Date().toISOString(),
+  };
+  subscribers.unshift(newSub);
+  saveSubscribers(subscribers);
+  return newSub;
+}
+
+export function updateSubscriber(id: string, updates: Partial<Subscriber>): Subscriber {
+  const subscribers = loadSubscribers();
+  const index = subscribers.findIndex((s) => s.id === id);
+  if (index === -1) {
+    throw new Error('Suscriptor no encontrado');
+  }
+  subscribers[index] = { ...subscribers[index], ...updates };
+  saveSubscribers(subscribers);
+  return subscribers[index];
+}
+
+export function recordSubscriberCut(id: string, increment: number = 1): Subscriber {
+  const subscribers = loadSubscribers();
+  const index = subscribers.findIndex((s) => s.id === id);
+  if (index === -1) {
+    throw new Error('Suscriptor no encontrado');
+  }
+  const current = subscribers[index].cutsUsedThisMonth || 0;
+  subscribers[index].cutsUsedThisMonth = Math.min(4, Math.max(0, current + increment));
+  saveSubscribers(subscribers);
+  return subscribers[index];
+}
+
+export function deleteSubscriber(id: string): void {
+  let subscribers = loadSubscribers();
+  subscribers = subscribers.filter((s) => s.id !== id);
+  saveSubscribers(subscribers);
 }
 

@@ -32,6 +32,21 @@ import {
   deleteReviewReply,
   deleteReview,
   getReviewsSummary,
+  loadProducts,
+  saveProducts,
+  createProduct,
+  updateProduct,
+  updateProductStock,
+  deleteProduct,
+  loadMonthlyPlans,
+  saveMonthlyPlans,
+  updateMonthlyPlan,
+  loadSubscribers,
+  saveSubscribers,
+  createSubscriber,
+  updateSubscriber,
+  recordSubscriberCut,
+  deleteSubscriber,
 } from './server/storage.ts';
 import { BookingPayload, Barber, CreateReviewPayload } from './src/types.ts';
 
@@ -40,7 +55,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  // Support JSON and urlencoded with 50mb limit for product images
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // API Routes
   app.get('/api/health', (req, res) => {
@@ -161,6 +178,142 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
       res.json({ message: 'Servicio eliminado con éxito' });
     } catch (err: any) {
       res.status(400).json({ error: err.message || 'Error al eliminar servicio' });
+    }
+  });
+
+  // -------------------------------------------------------------
+  // Products & Inventory Management API
+  // -------------------------------------------------------------
+  app.get('/api/products', (req, res) => {
+    res.json(loadProducts());
+  });
+
+  app.post('/api/products', requireAdminAuth, (req, res) => {
+    try {
+      const { name, brand, category, price, stock, minStockAlert, description, imageUrl, featured } = req.body;
+      if (!name || !price) {
+        return res.status(400).json({ error: 'El nombre y el precio del producto son obligatorios' });
+      }
+      const created = createProduct({
+        name: name.trim(),
+        brand: brand?.trim() || undefined,
+        category: category?.trim() || 'General',
+        price: Number(price),
+        stock: Math.max(0, Number(stock) || 0),
+        minStockAlert: Math.max(0, Number(minStockAlert) || 3),
+        description: description?.trim() || '',
+        imageUrl: imageUrl?.trim() || '',
+        featured: !!featured,
+      });
+      res.status(201).json(created);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al crear producto' });
+    }
+  });
+
+  app.put('/api/products/:id', requireAdminAuth, (req, res) => {
+    try {
+      const updated = updateProduct(req.params.id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al actualizar producto' });
+    }
+  });
+
+  app.patch('/api/products/:id/stock', requireAdminAuth, (req, res) => {
+    try {
+      const { delta } = req.body;
+      if (typeof delta !== 'number') {
+        return res.status(400).json({ error: 'Se requiere el valor delta de stock (+1, -1, etc.)' });
+      }
+      const updated = updateProductStock(req.params.id, delta);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al actualizar stock' });
+    }
+  });
+
+  app.delete('/api/products/:id', requireAdminAuth, (req, res) => {
+    try {
+      deleteProduct(req.params.id);
+      res.json({ message: 'Producto eliminado con éxito' });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al eliminar producto' });
+    }
+  });
+
+  // -------------------------------------------------------------
+  // Monthly Plans & Subscribers Club API
+  // -------------------------------------------------------------
+  app.get('/api/plans', (req, res) => {
+    res.json(loadMonthlyPlans());
+  });
+
+  app.get('/api/subscribers', requireAdminAuth, (req, res) => {
+    res.json(loadSubscribers());
+  });
+
+  app.post('/api/subscribers', (req, res) => {
+    try {
+      const { clientName, clientPhone, planId, planName, monthlyFee, paymentMethod, notes } = req.body;
+      if (!clientName || !clientPhone || !planId) {
+        return res.status(400).json({ error: 'Nombre, teléfono y plan son obligatorios' });
+      }
+
+      const today = new Date();
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const nextMonthStr = `${nextMonth.getFullYear()}-${pad(nextMonth.getMonth() + 1)}-${pad(nextMonth.getDate())}`;
+
+      const newSub = createSubscriber({
+        clientName: clientName.trim(),
+        clientPhone: clientPhone.trim(),
+        planId,
+        planName: planName || (planId === 'plan_corte_barba' ? 'Plan Mensual Club Corte + Barba (4x3 VIP)' : 'Plan Mensual Club Corte (4x3)'),
+        monthlyFee: Number(monthlyFee) || (planId === 'plan_corte_barba' ? 40500 : 27000),
+        startDate: todayStr,
+        nextBillingDate: nextMonthStr,
+        status: 'active',
+        paymentMethod: paymentMethod || 'debito_tarjeta',
+        cutsUsedThisMonth: 0,
+        maxCutsPerMonth: 4,
+        notes: notes?.trim() || undefined,
+      });
+
+      res.status(201).json(newSub);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al suscribir cliente' });
+    }
+  });
+
+  app.patch('/api/subscribers/:id', requireAdminAuth, (req, res) => {
+    try {
+      const updated = updateSubscriber(req.params.id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al actualizar suscriptor' });
+    }
+  });
+
+  app.post('/api/subscribers/:id/cut', requireAdminAuth, (req, res) => {
+    try {
+      const { delta = 1 } = req.body;
+      const updated = recordSubscriberCut(req.params.id, delta);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al registrar corte' });
+    }
+  });
+
+  app.delete('/api/subscribers/:id', requireAdminAuth, (req, res) => {
+    try {
+      deleteSubscriber(req.params.id);
+      res.json({ message: 'Suscriptor eliminado con éxito' });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Error al eliminar suscriptor' });
     }
   });
 
@@ -542,6 +695,158 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
       return res.status(404).json({ error: 'Reseña no encontrada' });
     }
     res.json(updated);
+  });
+
+  // -------------------------------------------------------------
+  // Monthly Plans API
+  // -------------------------------------------------------------
+  app.get('/api/monthly-plans', (req, res) => {
+    try {
+      const plans = loadMonthlyPlans();
+      res.json(plans);
+    } catch (err: any) {
+      console.error('Error loading monthly plans:', err);
+      res.status(500).json({ error: 'Error al cargar planes mensuales' });
+    }
+  });
+
+  app.put('/api/monthly-plans/:id', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = updateMonthlyPlan(id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      console.error('Error updating monthly plan:', err);
+      res.status(500).json({ error: err.message || 'Error al actualizar plan mensual' });
+    }
+  });
+
+  // -------------------------------------------------------------
+  // Products & Stock Inventory API
+  // -------------------------------------------------------------
+  app.get('/api/products', (req, res) => {
+    try {
+      const products = loadProducts();
+      res.json(products);
+    } catch (err: any) {
+      console.error('Error loading products:', err);
+      res.status(500).json({ error: 'Error al cargar productos' });
+    }
+  });
+
+  app.post('/api/products', requireAdminAuth, (req, res) => {
+    try {
+      const { name, brand, category, price, stock, minStockAlert, description, imageUrl, featured } = req.body;
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: 'El nombre del producto es obligatorio' });
+      }
+      const newProd = createProduct({
+        name: name.trim(),
+        brand: brand?.trim() || '',
+        category: category || 'Ceras y Pomadas',
+        price: Number(price) || 0,
+        stock: Math.max(0, Number(stock) || 0),
+        minStockAlert: Math.max(0, Number(minStockAlert) || 3),
+        description: description?.trim() || '',
+        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&auto=format&fit=crop&q=80',
+        featured: Boolean(featured),
+      });
+      res.status(201).json(newProd);
+    } catch (err: any) {
+      console.error('Error creating product:', err);
+      res.status(500).json({ error: 'Error al crear producto' });
+    }
+  });
+
+  app.put('/api/products/:id', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = updateProduct(id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      console.error('Error updating product:', err);
+      res.status(500).json({ error: err.message || 'Error al actualizar producto' });
+    }
+  });
+
+  app.post('/api/products/:id/stock', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      const delta = Number(req.body.delta) || 0;
+      const updated = updateProductStock(id, delta);
+      res.json(updated);
+    } catch (err: any) {
+      console.error('Error updating product stock:', err);
+      res.status(500).json({ error: err.message || 'Error al modificar stock' });
+    }
+  });
+
+  app.delete('/api/products/:id', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      deleteProduct(id);
+      res.json({ success: true, message: 'Producto eliminado' });
+    } catch (err: any) {
+      console.error('Error deleting product:', err);
+      res.status(500).json({ error: 'Error al eliminar producto' });
+    }
+  });
+
+  // -------------------------------------------------------------
+  // Subscribers 4x3 API
+  // -------------------------------------------------------------
+  app.get('/api/subscribers', requireAdminAuth, (req, res) => {
+    try {
+      const subs = loadSubscribers();
+      res.json(subs);
+    } catch (err: any) {
+      console.error('Error loading subscribers:', err);
+      res.status(500).json({ error: 'Error al cargar suscriptores' });
+    }
+  });
+
+  app.post('/api/subscribers', requireAdminAuth, (req, res) => {
+    try {
+      const newSub = createSubscriber(req.body);
+      res.status(201).json(newSub);
+    } catch (err: any) {
+      console.error('Error creating subscriber:', err);
+      res.status(500).json({ error: err.message || 'Error al registrar suscriptor' });
+    }
+  });
+
+  app.put('/api/subscribers/:id', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = updateSubscriber(id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      console.error('Error updating subscriber:', err);
+      res.status(500).json({ error: err.message || 'Error al actualizar suscriptor' });
+    }
+  });
+
+  app.post('/api/subscribers/:id/cut', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      const increment = Number(req.body.increment) || 1;
+      const updated = recordSubscriberCut(id, increment);
+      res.json(updated);
+    } catch (err: any) {
+      console.error('Error recording subscriber cut:', err);
+      res.status(500).json({ error: err.message || 'Error al registrar corte' });
+    }
+  });
+
+  app.delete('/api/subscribers/:id', requireAdminAuth, (req, res) => {
+    try {
+      const { id } = req.params;
+      deleteSubscriber(id);
+      res.json({ success: true, message: 'Suscriptor eliminado' });
+    } catch (err: any) {
+      console.error('Error deleting subscriber:', err);
+      res.status(500).json({ error: 'Error al eliminar suscriptor' });
+    }
   });
 
   // Background automated reminders check (every 5 minutes)

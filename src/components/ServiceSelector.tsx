@@ -173,6 +173,14 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                   {service.description}
                 </p>
 
+                {/* 4x3 Plan Mini Badge */}
+                {(service.id === 'corte' || service.id === 'corte_barba') && (
+                  <div className="mt-2 py-1 px-2 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center gap-1.5 text-[11px] text-amber-300">
+                    <Sparkles className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                    <span>Plan Mensual 4x3 con débito automático disponible</span>
+                  </div>
+                )}
+
                 {/* Expanded includes list */}
                 {isExpanded && service.includes && service.includes.length > 0 && (
                   <div className="mt-3 pt-2 border-t border-zinc-800/80 space-y-1.5 animate-in fade-in duration-200">

@@ -21,11 +21,15 @@ import {
   Download,
   Lock,
   FolderDown,
+  Package,
+  CreditCard,
 } from 'lucide-react';
 import { Appointment, BusinessSettings, BarberService, Barber } from '../types.ts';
 import { StaffManagement } from './StaffManagement.tsx';
 import { VisualCalendar } from './VisualCalendar.tsx';
 import { ServicesCatalog } from './ServicesCatalog.tsx';
+import { ProductsSection } from './ProductsSection.tsx';
+import { SubscribersManager } from './SubscribersManager.tsx';
 import {
   loadClientAppointments,
   saveClientAppointments,
@@ -42,7 +46,7 @@ interface AdminAgendaProps {
   onBarbersChange: (barbers: Barber[]) => void;
   onServicesChange: (services: BarberService[]) => void;
   onLockPanel?: () => void;
-  initialTab?: 'agenda' | 'calendar' | 'staff' | 'catalog';
+  initialTab?: 'agenda' | 'calendar' | 'staff' | 'catalog' | 'products' | 'subscribers';
 }
 
 export const AdminAgenda: React.FC<AdminAgendaProps> = ({
@@ -55,7 +59,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
   onLockPanel,
   initialTab = 'agenda',
 }) => {
-  const [activeTab, setActiveTab] = useState<'agenda' | 'calendar' | 'staff' | 'catalog'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'agenda' | 'calendar' | 'staff' | 'catalog' | 'products' | 'subscribers'>(initialTab);
   const [calendarSelectedDate, setCalendarSelectedDate] = useState<string>(
     () => new Date().toISOString().split('T')[0]
   );
@@ -525,6 +529,34 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
           <BookOpen className="w-4 h-4" />
           <span>Catálogo & Precios</span>
         </button>
+
+        <button
+          type="button"
+          id="admin-tab-products"
+          onClick={() => setActiveTab('products')}
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
+            activeTab === 'products'
+              ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          <span>Stock de Productos</span>
+        </button>
+
+        <button
+          type="button"
+          id="admin-tab-subscribers"
+          onClick={() => setActiveTab('subscribers')}
+          className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 snap-start ${
+            activeTab === 'subscribers'
+              ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+          }`}
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>Suscriptores 4x3</span>
+        </button>
       </div>
 
       {/* TAB 1: VISUAL CALENDAR */}
@@ -563,6 +595,7 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
         <div className="animate-in fade-in duration-200">
           <ServicesCatalog
             services={services}
+            settings={settings}
             isAdmin={true}
             onSelectServiceAndBook={(s) => {
               setManualServiceId(s.id);
@@ -573,6 +606,20 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
             }}
             onServicesChange={onServicesChange}
           />
+        </div>
+      )}
+
+      {/* TAB: PRODUCTS STOCK */}
+      {activeTab === 'products' && (
+        <div className="animate-in fade-in duration-200">
+          <ProductsSection isAdmin={true} settings={settings} />
+        </div>
+      )}
+
+      {/* TAB: SUBSCRIBERS 4X3 */}
+      {activeTab === 'subscribers' && (
+        <div className="animate-in fade-in duration-200">
+          <SubscribersManager settings={settings} />
         </div>
       )}
 

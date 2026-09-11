@@ -11,10 +11,11 @@ import {
   Sparkles,
   Lock,
   Star,
+  Package,
 } from 'lucide-react';
 import { BusinessSettings } from '../types.ts';
 
-export type AppView = 'book' | 'catalog' | 'calendar' | 'reviews' | 'my-turns' | 'admin';
+export type AppView = 'book' | 'catalog' | 'products' | 'calendar' | 'reviews' | 'my-turns' | 'admin';
 
 
 interface HeaderProps {
@@ -118,7 +119,20 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Catálogo</span>
+              <span>Catálogo & Planes</span>
+            </button>
+
+            <button
+              id="nav-btn-products"
+              onClick={() => setActiveView('products')}
+              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                activeView === 'products'
+                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+              }`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Productos</span>
             </button>
 
             <button
@@ -236,7 +250,20 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Catálogo</span>
+              <span>Catálogo & Planes</span>
+            </button>
+
+            <button
+              id="nav-btn-products-mobile"
+              onClick={() => setActiveView('products')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeView === 'products'
+                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+              }`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Productos</span>
             </button>
 
             <button
