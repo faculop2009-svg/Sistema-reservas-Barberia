@@ -156,10 +156,21 @@ export interface MonthlyPlan {
   popular?: boolean;
 }
 
+export interface SubscriptionCardDetails {
+  cardHolder: string;
+  lastFourDigits: string;
+  brand: 'visa' | 'mastercard' | 'amex' | 'cabal' | 'tarjeta';
+  expiration: string;
+  dni?: string;
+  bankName?: string;
+}
+
 export interface Subscriber {
   id: string;
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
+  clientDni?: string;
   planId: 'plan_corte' | 'plan_corte_barba' | string;
   planName: string;
   monthlyFee: number;
@@ -169,6 +180,7 @@ export interface Subscriber {
   paymentMethod: 'debito_cbu' | 'debito_tarjeta' | 'debito_mercadopago';
   cutsUsedThisMonth: number;
   maxCutsPerMonth: number; // 4
+  cardDetails?: SubscriptionCardDetails;
   notes?: string;
   createdAt: string;
 }

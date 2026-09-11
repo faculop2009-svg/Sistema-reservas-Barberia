@@ -255,7 +255,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
 
   app.post('/api/subscribers', (req, res) => {
     try {
-      const { clientName, clientPhone, planId, planName, monthlyFee, paymentMethod, notes } = req.body;
+      const { clientName, clientPhone, clientEmail, clientDni, planId, planName, monthlyFee, paymentMethod, cardDetails, notes } = req.body;
       if (!clientName || !clientPhone || !planId) {
         return res.status(400).json({ error: 'Nombre, teléfono y plan son obligatorios' });
       }
@@ -271,6 +271,8 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
       const newSub = createSubscriber({
         clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
+        clientEmail: clientEmail?.trim() || undefined,
+        clientDni: clientDni?.trim() || undefined,
         planId,
         planName: planName || (planId === 'plan_corte_barba' ? 'Plan Mensual Club Corte + Barba (4x3 VIP)' : 'Plan Mensual Club Corte (4x3)'),
         monthlyFee: Number(monthlyFee) || (planId === 'plan_corte_barba' ? 40500 : 27000),
@@ -280,6 +282,7 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         paymentMethod: paymentMethod || 'debito_tarjeta',
         cutsUsedThisMonth: 0,
         maxCutsPerMonth: 4,
+        cardDetails: cardDetails || undefined,
         notes: notes?.trim() || undefined,
       });
 

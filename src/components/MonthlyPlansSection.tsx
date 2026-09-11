@@ -17,6 +17,7 @@ import {
   Check,
   DollarSign,
   AlertCircle,
+  MessageCircle,
 } from 'lucide-react';
 import { MonthlyPlan, BusinessSettings } from '../types.ts';
 import { DEFAULT_MONTHLY_PLANS, DEFAULT_SETTINGS } from '../data/defaults.ts';
@@ -26,6 +27,7 @@ import {
   updateClientMonthlyPlan,
   loadClientSettings,
 } from '../utils/clientStorage.ts';
+import { AutomaticDebitModal } from './AutomaticDebitModal.tsx';
 
 interface MonthlyPlansSectionProps {
   settings?: BusinessSettings;
@@ -51,6 +53,7 @@ export const MonthlyPlansSection: React.FC<MonthlyPlansSectionProps> = ({
   });
 
   const [editingPlan, setEditingPlan] = useState<MonthlyPlan | null>(null);
+  const [selectedPlanForDebit, setSelectedPlanForDebit] = useState<MonthlyPlan | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Modal form states
@@ -362,19 +365,34 @@ export const MonthlyPlansSection: React.FC<MonthlyPlansSectionProps> = ({
 
               {/* Action Buttons */}
               <div className="space-y-2 pt-2 border-t border-zinc-800/80">
-                <a
-                  href={getWhatsAppSubscribeUrl(plan)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                <button
+                  type="button"
+                  id={`btn-subscribe-card-${plan.id}`}
+                  onClick={() => {
+                    setSelectedPlanForDebit(plan);
+                    if (onRequestSubscribe) onRequestSubscribe(plan);
+                  }}
+                  className={`w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-[0.99] ${
                     isCombo
                       ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-amber-500/20'
                       : 'bg-zinc-100 hover:bg-white text-zinc-950'
                   }`}
                 >
-                  <CreditCard className="w-4 h-4" />
+                  <CreditCard className="w-4 h-4 stroke-[2.5]" />
                   <span>Adherirme con Débito Automático</span>
-                </a>
+                </button>
+
+                <div className="text-center">
+                  <a
+                    href={getWhatsAppSubscribeUrl(plan)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-zinc-400 hover:text-amber-400 hover:underline inline-flex items-center gap-1 transition-colors"
+                  >
+                    <MessageCircle className="w-3 h-3 text-emerald-400" />
+                    <span>O consultar dudas por WhatsApp</span>
+                  </a>
+                </div>
 
                 {onSelectPlanAndBook && (
                   <button
@@ -674,6 +692,21 @@ export const MonthlyPlansSection: React.FC<MonthlyPlansSectionProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* AUTOMATIC DEBIT CARD REGISTRATION MODAL */}
+      {selectedPlanForDebit && (
+        <AutomaticDebitModal
+          plan={selectedPlanForDebit}
+          settings={currentSettings}
+          isOpen={!!selectedPlanForDebit}
+          onClose={() => setSelectedPlanForDebit(null)}
+          onBookService={(serviceTarget) => {
+            if (onSelectPlanAndBook) {
+              onSelectPlanAndBook(serviceTarget);
+            }
+          }}
+        />
       )}
     </div>
   );

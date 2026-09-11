@@ -775,6 +775,10 @@ export default function App() {
             setCreatedAppointment(null);
             setActiveView('book');
           }}
+          onNavigateToProducts={() => {
+            setCreatedAppointment(null);
+            setActiveView('products');
+          }}
         />
       )}
 

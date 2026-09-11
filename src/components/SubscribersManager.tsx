@@ -519,6 +519,33 @@ export const SubscribersManager: React.FC<SubscribersManagerProps> = ({
                   </div>
                 </div>
 
+                {/* Card & Billing Information */}
+                {s.cardDetails ? (
+                  <div className="bg-zinc-950/80 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-zinc-200 block uppercase">
+                          {s.cardDetails.brand} **** {s.cardDetails.lastFourDigits}
+                        </span>
+                        <span className="text-[10px] text-zinc-400">
+                          Titular: {s.cardDetails.cardHolder} • Vence: {s.cardDetails.expiration}
+                          {s.cardDetails.dni ? ` • DNI: ${s.cardDetails.dni}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                      Débito Automático OK
+                    </span>
+                  </div>
+                ) : s.clientDni ? (
+                  <div className="text-[11px] text-zinc-400">
+                    <span>DNI Titular: <strong className="text-zinc-300">{s.clientDni}</strong></span>
+                  </div>
+                ) : null}
+
                 {s.notes && (
                   <p className="text-[11px] text-zinc-400 bg-zinc-950/50 p-2 rounded-lg italic">
                     Nota: {s.notes}
