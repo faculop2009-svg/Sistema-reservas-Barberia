@@ -286,7 +286,14 @@ export const ServicesCatalog: React.FC<ServicesCatalogProps> = ({
         </div>
 
         {/* Categories Bar */}
-        <div className="flex items-center gap-2 pt-6 overflow-x-auto pb-1 no-scrollbar touch-scroll-x snap-x -mx-1 px-1">
+        <div
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex items-center gap-2 pt-6 overflow-x-auto pb-1 horizontal-scroll-container snap-x -mx-1 px-1"
+        >
           {categories.map((cat) => (
             <button
               key={cat}

@@ -204,7 +204,14 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Swipeable Horizontal Navigation Bar (Allows smooth touch sliding to see all options) */}
-        <div className="md:hidden pb-2.5 pt-0.5 -mx-4 px-4 overflow-x-auto no-scrollbar touch-scroll-x">
+        <div
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="md:hidden pb-2.5 pt-0.5 -mx-4 px-4 overflow-x-auto horizontal-scroll-container"
+        >
           <div className="flex items-center gap-1.5 w-max">
             <button
               id="nav-btn-book-mobile"

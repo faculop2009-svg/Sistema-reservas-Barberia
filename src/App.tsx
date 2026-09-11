@@ -543,7 +543,7 @@ export default function App() {
   const barberDisplayName = selectedBarberObj ? selectedBarberObj.name : 'Cualquier barbero disponible';
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-zinc-950 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-zinc-950 w-full">
       {/* Top Header */}
       <Header
         settings={settings}
@@ -554,7 +554,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 overflow-x-hidden">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {/* VIEW 1: CLIENT BOOKING */}
         {activeView === 'book' && (
           <div className="space-y-8 animate-in fade-in duration-200">

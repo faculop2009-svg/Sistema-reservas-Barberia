@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -9,6 +9,8 @@ import {
   LayoutGrid,
   Check,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Barber, BarberService } from '../types.ts';
 import { VisualCalendar } from './VisualCalendar.tsx';
@@ -46,6 +48,21 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   services = [],
 }) => {
   const [viewMode, setViewMode] = useState<'quick' | 'full_calendar'>('quick');
+  const datesContainerRef = useRef<HTMLDivElement>(null);
+  const barbersContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollDates = (direction: 'left' | 'right') => {
+    if (datesContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      datesContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const handleHorizontalWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY !== 0) {
+      e.currentTarget.scrollLeft += e.deltaY;
+    }
+  };
 
   // Generate next 14 days for quick strip
   const quickDates = React.useMemo(() => {
@@ -160,7 +177,11 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
           </div>
         </div>
 
-        <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2.5 overflow-x-auto pb-2 sm:pb-0 no-scrollbar touch-scroll-x snap-x snap-mandatory -mx-1 px-1">
+        <div
+          ref={barbersContainerRef}
+          onWheel={handleHorizontalWheel}
+          className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2.5 overflow-x-auto pb-2 sm:pb-0 horizontal-scroll-container snap-x snap-mandatory -mx-1 px-1"
+        >
           {activeBarbers.map((barber) => {
             const isSelected = selectedBarberId === barber.id;
             const canDoService =
@@ -240,10 +261,32 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
           {/* Quick Date Strip */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
-                Selecciona el día
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
+                  Selecciona el día
+                </label>
+                <div className="flex items-center gap-1 ml-1">
+                  <button
+                    type="button"
+                    onClick={() => scrollDates('left')}
+                    aria-label="Ver días anteriores"
+                    title="Deslizar días a la izquierda"
+                    className="w-6 h-6 rounded-md bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollDates('right')}
+                    aria-label="Ver siguientes días"
+                    title="Deslizar días a la derecha"
+                    className="w-6 h-6 rounded-md bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 flex items-center justify-center transition-colors shadow-sm"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-amber-500/80 font-medium sm:hidden">Desliza ➔</span>
                 <span className="text-[11px] text-zinc-500 hidden sm:inline">Otra fecha:</span>
@@ -258,7 +301,11 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar touch-scroll-x snap-x snap-mandatory -mx-1 px-1">
+            <div
+              ref={datesContainerRef}
+              onWheel={handleHorizontalWheel}
+              className="flex gap-2 overflow-x-auto pb-2.5 horizontal-scroll-container snap-x snap-mandatory -mx-1 px-1"
+            >
               {quickDates.map((item) => {
                 const isSelected = selectedDate === item.ymd;
                 return (

@@ -462,7 +462,14 @@ export const AdminAgenda: React.FC<AdminAgendaProps> = ({
       </div>
 
       {/* Sub-Tab Selector with smooth mobile touch scrolling */}
-      <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto text-xs no-scrollbar touch-scroll-x shadow-md snap-x -mx-1 px-1">
+      <div
+        onWheel={(e) => {
+          if (e.deltaY !== 0) {
+            e.currentTarget.scrollLeft += e.deltaY;
+          }
+        }}
+        className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto text-xs horizontal-scroll-container shadow-md snap-x -mx-1 px-1"
+      >
         <button
           type="button"
           id="admin-tab-agenda"

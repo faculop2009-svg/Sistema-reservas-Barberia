@@ -147,7 +147,7 @@ export const LookupAppointment: React.FC<LookupAppointmentProps> = ({
       </div>
 
       {/* Search Input */}
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" />
           <input
@@ -164,7 +164,7 @@ export const LookupAppointment: React.FC<LookupAppointmentProps> = ({
           type="submit"
           id="lookup-submit-btn"
           disabled={loading || !query.trim()}
-          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-bold text-xs sm:text-sm rounded-xl transition-colors shadow-md shadow-amber-500/10"
+          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-bold text-xs sm:text-sm rounded-xl transition-colors shadow-md shadow-amber-500/10 whitespace-nowrap flex items-center justify-center gap-1.5"
         >
           {loading ? 'Buscando...' : 'Buscar Turno'}
         </button>

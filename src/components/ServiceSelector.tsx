@@ -82,7 +82,14 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
 
       {/* Swipeable Category Filter Bar */}
       {categories.length > 2 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-scroll-x py-1 -mx-1 px-1">
+        <div
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex items-center gap-1.5 overflow-x-auto horizontal-scroll-container py-1 -mx-1 px-1"
+        >
           {categories.map((cat) => (
             <button
               key={cat}
