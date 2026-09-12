@@ -14,7 +14,7 @@ import { AdminPinModal } from './components/AdminPinModal.tsx';
 import { ReviewsSection } from './components/ReviewsSection.tsx';
 import { DEFAULT_SERVICES, DEFAULT_BARBERS, DEFAULT_SETTINGS, DEFAULT_REVIEWS } from './data/defaults.ts';
 import { BarberService, Barber, BusinessSettings, Appointment, Review } from './types.ts';
-import { MessageCircle, CheckCircle, Clock, CalendarDays, Sparkles, BookOpen, Lock, Instagram, Star } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, CalendarDays, Sparkles, BookOpen, Lock, Instagram, Star, Scissors } from 'lucide-react';
 import {
   loadClientSettings,
   saveClientSettings,
@@ -575,18 +575,20 @@ export default function App() {
         {/* VIEW 1: CLIENT BOOKING */}
         {activeView === 'book' && (
           <div className="space-y-8 animate-in fade-in duration-200">
-            {/* Hero Trust Badge */}
-            <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-              <div className="space-y-1 text-center sm:text-left">
-                <span className="text-amber-500 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
+            {/* Hero Studio Banner */}
+            <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="space-y-2 text-center sm:text-left relative z-10">
+                <span className="text-amber-400 text-xs font-extrabold uppercase tracking-widest flex items-center gap-2 justify-center sm:justify-start">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Reserva Online Rápida y Segura
+                  Sistema de Citas &amp; Turnos Oficial
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black text-zinc-100 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-100 tracking-tight font-display">
                   Agenda tu turno en {settings.shopName}
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-                  Selecciona tu corte o barba, el profesional y el horario disponible. Recibirás confirmación y recordatorio automático por WhatsApp.
+                <p className="text-xs sm:text-sm text-zinc-400 max-w-xl leading-relaxed">
+                  Reserva tu corte o diseño de barba en segundos. Selecciona el profesional, la fecha y el horario. Recibirás confirmación y recordatorio automático directo a tu WhatsApp.
                 </p>
 
                 {/* Trust Rating Badge (Shown only if reviews are enabled) */}
@@ -595,32 +597,78 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setActiveView('reviews')}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/40 text-xs text-zinc-300 transition-all group"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/50 text-xs text-zinc-300 transition-all group shadow-sm"
                     >
-                      <div className="flex items-center gap-0.5 text-amber-400">
+                      <div className="flex items-center gap-1 text-amber-400">
                         <Star className="w-3.5 h-3.5 fill-current" />
-                        <span className="font-bold text-zinc-100">{reviewsAverage.toFixed(1)}</span>
+                        <span className="font-extrabold text-zinc-100">{reviewsAverage.toFixed(1)}</span>
                       </div>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-zinc-400 group-hover:text-amber-400 transition-colors">
-                        {reviews.length} opiniones verificadas
+                      <span className="text-zinc-600">•</span>
+                      <span className="text-zinc-400 group-hover:text-amber-300 transition-colors">
+                        {reviews.length} clientes satisfechos
                       </span>
-                      <span className="text-amber-500 font-semibold underline text-[11px]">Ver Reseñas</span>
+                      <span className="text-amber-400 font-semibold underline text-[11px] ml-1">Ver Reseñas</span>
                     </button>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 bg-zinc-950/80 border border-zinc-800 px-4 py-3 rounded-2xl text-xs text-zinc-300 flex-shrink-0 shadow-md">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <div className="flex items-center gap-3.5 bg-zinc-950/90 border border-zinc-800/90 px-4 py-3.5 rounded-2xl text-xs text-zinc-300 flex-shrink-0 shadow-lg relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-500/20">
                   <MessageCircle className="w-5 h-5 fill-current" />
                 </div>
                 <div>
-                  <div className="font-bold text-emerald-400 flex items-center gap-1">
+                  <div className="font-extrabold text-emerald-400 flex items-center gap-1.5 text-xs">
                     <span>Recordatorio WhatsApp</span>
                     <CheckCircle className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] text-zinc-400">Notificación automática sin fallos</div>
+                  <div className="text-[11px] text-zinc-400">Te avisamos 2 hs antes de tu visita</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stepper Progress Bar */}
+            <div className="bg-zinc-900/90 border border-zinc-800/90 p-2 sm:p-3 rounded-2xl shadow-lg">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {/* Step 1 */}
+                <div className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${
+                  selectedService ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' : 'bg-zinc-950/40 text-zinc-400 border border-zinc-800'
+                }`}>
+                  <div className="w-6 h-6 rounded-lg bg-amber-500 text-zinc-950 font-black flex items-center justify-center text-xs flex-shrink-0 shadow-sm">
+                    ✓
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider truncate">1. Servicio</div>
+                    <div className="text-[11px] sm:text-xs text-zinc-300 font-semibold truncate">{selectedService.name}</div>
+                  </div>
+                </div>
+                {/* Step 2 */}
+                <div className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${
+                  selectedTime ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' : 'bg-zinc-950/40 text-zinc-400 border border-zinc-800'
+                }`}>
+                  <div className={`w-6 h-6 rounded-lg font-black flex items-center justify-center text-xs flex-shrink-0 shadow-sm ${
+                    selectedTime ? 'bg-amber-500 text-zinc-950' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {selectedTime ? '✓' : '2'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider truncate">2. Horario</div>
+                    <div className="text-[11px] sm:text-xs text-zinc-300 font-semibold truncate">{selectedTime ? `${selectedTime} hs` : 'Seleccionar hora'}</div>
+                  </div>
+                </div>
+                {/* Step 3 */}
+                <div className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${
+                  clientName && clientPhone ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-zinc-950/40 text-zinc-400 border border-zinc-800'
+                }`}>
+                  <div className={`w-6 h-6 rounded-lg font-black flex items-center justify-center text-xs flex-shrink-0 shadow-sm ${
+                    clientName && clientPhone ? 'bg-emerald-500 text-zinc-950' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {clientName && clientPhone ? '✓' : '3'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider truncate">3. Confirmar</div>
+                    <div className="text-[11px] sm:text-xs text-zinc-300 font-semibold truncate">{clientName ? clientName : 'Tus datos'}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -649,6 +697,31 @@ export default function App() {
               enableBarberSelection={settings.enableBarberSelection !== false}
               enablePublicCalendar={settings.enablePublicCalendar !== false}
             />
+
+            {/* Confirmed Slot Selection Feedback */}
+            {selectedTime && (
+              <div className="p-3.5 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-zinc-900 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in slide-in-from-bottom-2 shadow-lg">
+                <div className="flex items-center gap-3 text-zinc-200">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-zinc-950 font-extrabold flex items-center justify-center text-xs flex-shrink-0 shadow-md shadow-amber-500/20">
+                    ✓
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-amber-300 text-xs sm:text-sm">
+                      {selectedService.name} • {selectedDate} a las {selectedTime} hs
+                    </div>
+                    <div className="text-[11px] text-zinc-400">
+                      Profesional: <span className="text-zinc-200 font-medium">{barberDisplayName}</span> • Abonas en el local al atenderte
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href="#client-name-input"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-xs flex-shrink-0 transition-all text-center shadow-md shadow-amber-500/15"
+                >
+                  Continuar al Paso 3 ↓
+                </a>
+              </div>
+            )}
 
             {/* Step 3: Client Info & Submit */}
             <ClientForm
@@ -813,43 +886,86 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 bg-zinc-950 mt-12 py-8 text-xs text-zinc-500">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-zinc-300">{settings.shopName}</span>
-            <span>•</span>
-            <span>{settings.address}</span>
-            {settings.instagram && (
-              <>
-                <span>•</span>
+      <footer className="border-t border-zinc-800/90 bg-zinc-950 mt-16 py-10 text-xs text-zinc-500">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-zinc-900">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <Scissors className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-extrabold text-zinc-200 text-sm font-display tracking-tight">{settings.shopName}</span>
+                <p className="text-[11px] text-zinc-400">{settings.tagline}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs">
+              <button
+                onClick={() => setActiveView('book')}
+                className="text-zinc-400 hover:text-amber-400 transition-colors font-medium"
+              >
+                Reservar
+              </button>
+              <span className="text-zinc-700">•</span>
+              <button
+                onClick={() => setActiveView('catalog')}
+                className="text-zinc-400 hover:text-amber-400 transition-colors font-medium"
+              >
+                Catálogo
+              </button>
+              {settings.enableLookupMyTurn !== false && (
+                <>
+                  <span className="text-zinc-700">•</span>
+                  <button
+                    onClick={() => setActiveView('my-turns')}
+                    className="text-zinc-400 hover:text-amber-400 transition-colors font-medium"
+                  >
+                    Buscar Mi Turno
+                  </button>
+                </>
+              )}
+              <span className="text-zinc-700">•</span>
+              <button
+                onClick={() => setActiveView('admin')}
+                className="text-zinc-400 hover:text-amber-400 transition-colors font-medium"
+              >
+                Acceso Personal
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-zinc-400">
+              <span className="flex items-center gap-1.5 text-zinc-300">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                Lun a Sáb {settings.openingHour} - {settings.closingHour} hs
+              </span>
+              <span className="text-zinc-700">•</span>
+              <span className="text-zinc-400">{settings.address}</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {settings.instagram && (
                 <a
                   href={`https://instagram.com/${settings.instagram.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-pink-400 hover:text-pink-300 transition-colors"
+                  className="flex items-center gap-1 text-pink-400/90 hover:text-pink-300 transition-colors"
                 >
                   <Instagram className="w-3.5 h-3.5" />
                   <span>{settings.instagram}</span>
                 </a>
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-zinc-400">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              {settings.openingHour} - {settings.closingHour} hs
-            </span>
-            <span>•</span>
-            <a
-              href={`https://wa.me/${settings.phone.replace(/[^0-9]/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              WhatsApp: {settings.phone}
-            </a>
+              )}
+              <a
+                href={`https://wa.me/${settings.phone.replace(/[^0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>WhatsApp {settings.phone}</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>

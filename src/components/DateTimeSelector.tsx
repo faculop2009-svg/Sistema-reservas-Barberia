@@ -316,7 +316,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
               onWheel={handleHorizontalWheel}
               className="flex gap-2 overflow-x-auto pb-2.5 horizontal-scroll-container snap-x snap-mandatory -mx-1 px-1"
             >
-              {quickDates.map((item) => {
+              {quickDates.map((item, idx) => {
                 const isSelected = selectedDate === item.ymd;
                 return (
                   <button
@@ -325,19 +325,33 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                     id={`quick-date-${item.ymd}`}
                     disabled={item.isSunday}
                     onClick={() => onSelectDate(item.ymd)}
-                    className={`flex-shrink-0 w-20 py-2.5 px-2 rounded-xl border flex flex-col items-center justify-center transition-all snap-start ${
+                    className={`flex-shrink-0 w-22 py-3 px-2 rounded-xl border flex flex-col items-center justify-center transition-all snap-start relative ${
                       item.isSunday
-                        ? 'opacity-40 bg-zinc-900/30 border-zinc-800/50 cursor-not-allowed text-zinc-600'
+                        ? 'opacity-35 bg-zinc-900/30 border-zinc-800/50 cursor-not-allowed text-zinc-600'
                         : isSelected
-                        ? 'bg-amber-500 text-zinc-950 font-bold border-amber-500 shadow-md shadow-amber-500/20 scale-[1.02]'
-                        : 'bg-zinc-900/70 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800/70'
+                        ? 'bg-amber-500 text-zinc-950 font-bold border-amber-500 shadow-xl shadow-amber-500/20 scale-[1.03]'
+                        : 'bg-zinc-900/80 border-zinc-800/90 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800/80'
                     }`}
                   >
-                    <span className="text-[11px] font-medium uppercase tracking-tight">
+                    {idx === 0 && (
+                      <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full mb-1 ${
+                        isSelected ? 'bg-zinc-950 text-amber-400' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      }`}>
+                        Hoy
+                      </span>
+                    )}
+                    {idx === 1 && (
+                      <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-full mb-1 ${
+                        isSelected ? 'bg-zinc-950 text-amber-400' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        Mañana
+                      </span>
+                    )}
+                    <span className="text-[11px] font-semibold uppercase tracking-tight">
                       {item.dayName}
                     </span>
-                    <span className="text-lg font-extrabold my-0.5">{item.dayNumber}</span>
-                    <span className={`text-[10px] ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                    <span className="text-xl font-black my-0.5 font-display tracking-tight">{item.dayNumber}</span>
+                    <span className={`text-[10px] ${isSelected ? 'text-zinc-950 font-bold' : 'text-zinc-500'}`}>
                       {item.isSunday ? 'Cerrado' : item.monthName}
                     </span>
                   </button>

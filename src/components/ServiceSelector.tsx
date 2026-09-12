@@ -60,11 +60,11 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2">
+          <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2 font-display">
             <span>1. Elige tu servicio</span>
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Selecciona el corte, barba o tratamiento que deseas realizarte
+            Selecciona el corte, diseño de barba o tratamiento que deseas realizarte
           </p>
         </div>
 
@@ -117,21 +117,21 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
               key={service.id}
               id={`service-card-${service.id}`}
               onClick={() => onSelectService(service)}
-              className={`relative rounded-2xl border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between overflow-hidden ${
+              className={`relative rounded-2xl border cursor-pointer transition-all duration-200 text-left flex flex-col justify-between overflow-hidden group ${
                 isSelected
-                  ? 'bg-amber-950/20 border-amber-500 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/50'
-                  : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                  ? 'bg-zinc-900 border-amber-500/90 shadow-xl shadow-amber-500/10 ring-1 ring-amber-500/50'
+                  : 'bg-zinc-900/80 border-zinc-800/90 hover:border-zinc-700 hover:bg-zinc-900'
               }`}
             >
               {service.popular && (
-                <span className="absolute top-2 right-3 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-amber-500 text-zinc-950 shadow-sm">
-                  Más pedido
+                <span className="absolute top-2.5 right-3 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20">
+                  Popular
                 </span>
               )}
 
               {/* Card top banner with image preview */}
-              <div className="flex items-start gap-3 p-4">
-                <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-700/80 bg-zinc-950 shadow-inner">
+              <div className="flex items-start gap-3.5 p-4">
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-800 bg-zinc-950 shadow-inner group-hover:scale-105 transition-transform duration-300">
                   <img
                     src={resolveServiceImageUrl(service.imageUrl, service.id)}
                     alt={service.name}
@@ -146,20 +146,20 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                   />
                 </div>
 
-                <div className="flex-1 min-w-0 pr-12">
-                  <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-semibold mb-0.5">
+                <div className="flex-1 min-w-0 pr-10">
+                  <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-semibold mb-1">
                     {getIcon(service.iconName)}
-                    <span>{service.category}</span>
+                    <span className="uppercase tracking-wider text-[10px]">{service.category}</span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-zinc-100 truncate">
+                  <h3 className="text-sm sm:text-base font-bold text-zinc-100 truncate font-display">
                     {service.name}
                   </h3>
-                  <div className="flex items-center gap-2 text-xs mt-1 text-zinc-400">
-                    <span className="font-black text-zinc-100 text-sm">
+                  <div className="flex items-center gap-2 text-xs mt-1.5 text-zinc-400">
+                    <span className="font-extrabold text-amber-400 text-sm sm:text-base tracking-tight font-display">
                       ${service.price.toLocaleString('es-AR')}
                     </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1 text-zinc-400">
+                    <span className="text-zinc-600">•</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 text-[11px] font-medium border border-zinc-700/50">
                       <Clock className="w-3 h-3 text-amber-500" />
                       {service.durationMinutes} min
                     </span>

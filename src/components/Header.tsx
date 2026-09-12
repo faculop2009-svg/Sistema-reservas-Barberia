@@ -37,20 +37,24 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-30 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Top business info bar (Informational only for clients) */}
-        <div className="hidden sm:flex items-center justify-between py-2 border-b border-zinc-800/60 text-xs text-zinc-400">
+        <div className="hidden sm:flex items-center justify-between py-2 border-b border-zinc-800/80 text-xs text-zinc-400">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-zinc-300">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Abierto Hoy</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-300 text-[11px]">
               <Clock className="w-3.5 h-3.5 text-amber-500" />
-              <span>Lun a Sáb: {settings.openingHour} - {settings.closingHour} hs</span>
+              <span>Lun a Sáb {settings.openingHour} - {settings.closingHour} hs</span>
             </div>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors"
+              className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors text-[11px]"
               title="Ver ubicación en el mapa"
             >
-              <MapPin className="w-3.5 h-3.5 text-zinc-500" />
+              <MapPin className="w-3.5 h-3.5 text-amber-500/70" />
               <span>{settings.address}</span>
             </a>
           </div>
@@ -59,33 +63,35 @@ export const Header: React.FC<HeaderProps> = ({
               href={`https://wa.me/${settings.phone.replace(/[^0-9]/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-zinc-300 hover:text-emerald-400 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-zinc-300 hover:text-emerald-400 transition-all text-[11px] font-medium"
               title="Contactar por WhatsApp"
             >
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{settings.phone}</span>
+              <Phone className="w-3 h-3 text-emerald-400" />
+              <span>WhatsApp: {settings.phone}</span>
             </a>
           </div>
         </div>
 
         {/* Main Nav Bar */}
-        <div className="flex items-center justify-between py-2.5 sm:py-3">
+        <div className="flex items-center justify-between py-3">
           {/* Logo & Brand */}
           <div
             id="brand-logo"
             onClick={() => setActiveView('book')}
-            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0"
+            className="flex items-center gap-3 cursor-pointer group min-w-0"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
-              <Scissors className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 p-[1px] shadow-lg shadow-amber-500/10 group-hover:scale-105 transition-transform flex-shrink-0">
+              <div className="w-full h-full bg-zinc-950 rounded-[11px] flex items-center justify-center text-amber-400 group-hover:text-amber-300">
+                <Scissors className="w-5 h-5 stroke-[2.2]" />
+              </div>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-sm sm:text-lg font-black text-zinc-100 tracking-tight truncate">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-extrabold text-zinc-100 tracking-tight truncate font-display">
                   {settings.shopName}
                 </h1>
-                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex-shrink-0">
-                  Online
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex-shrink-0">
+                  Salon &amp; Barbershop
                 </span>
               </div>
               <p className="text-xs text-zinc-400 hidden sm:block truncate max-w-sm">
