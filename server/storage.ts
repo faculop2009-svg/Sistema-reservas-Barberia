@@ -723,7 +723,7 @@ export function getAvailableSlotsForDate(
       available = false;
       status = 'past';
       reason = 'Fecha ya transcurrida';
-    } else if (slotTotalMinutes >= lunchStartMinutes && slotTotalMinutes < lunchEndMinutes) {
+    } else if ((settings.enableLunchBreak ?? true) && slotTotalMinutes >= lunchStartMinutes && slotTotalMinutes < lunchEndMinutes) {
       available = false;
       status = 'lunch';
       reason = 'Receso / Almuerzo';

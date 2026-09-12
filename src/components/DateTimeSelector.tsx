@@ -32,6 +32,8 @@ interface DateTimeSelectorProps {
   onSelectBarber: (barberId: string) => void;
   selectedServiceId?: string;
   services?: BarberService[];
+  enableBarberSelection?: boolean;
+  enablePublicCalendar?: boolean;
 }
 
 export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
@@ -46,6 +48,8 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   onSelectBarber,
   selectedServiceId = 'corte',
   services = [],
+  enableBarberSelection = true,
+  enablePublicCalendar = true,
 }) => {
   const [viewMode, setViewMode] = useState<'quick' | 'full_calendar'>('quick');
   const datesContainerRef = useRef<HTMLDivElement>(null);
@@ -124,44 +128,49 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2">
-            <span>2. Fecha, profesional y horario</span>
+            <span>{enableBarberSelection ? '2. Fecha, profesional y horario' : '2. Fecha y horario'}</span>
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Elige el día y la hora que mejor te acomode en nuestro calendario interactivo
+            {enableBarberSelection
+              ? 'Elige el día y la hora que mejor te acomode en nuestro calendario interactivo'
+              : 'Elige el día y la hora para tu turno'}
           </p>
         </div>
 
         {/* Calendar View Toggle */}
-        <div className="inline-flex rounded-xl bg-zinc-900 p-1 border border-zinc-800 self-start sm:self-auto text-xs">
-          <button
-            type="button"
-            onClick={() => setViewMode('quick')}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
-              viewMode === 'quick'
-                ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Vista Rápida</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('full_calendar')}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
-              viewMode === 'full_calendar'
-                ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <CalendarDays className="w-3.5 h-3.5" />
-            <span>Calendario Mensual</span>
-          </button>
-        </div>
+        {enablePublicCalendar && (
+          <div className="inline-flex rounded-xl bg-zinc-900 p-1 border border-zinc-800 self-start sm:self-auto text-xs">
+            <button
+              type="button"
+              onClick={() => setViewMode('quick')}
+              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === 'quick'
+                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Vista Rápida</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('full_calendar')}
+              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === 'full_calendar'
+                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Calendario Mensual</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Barber selection */}
-      <div className="bg-zinc-900/70 p-4 rounded-2xl border border-zinc-800 space-y-3 shadow-md">
+      {enableBarberSelection && (
+        <div className="bg-zinc-900/70 p-4 rounded-2xl border border-zinc-800 space-y-3 shadow-md">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-amber-500" />
@@ -240,6 +249,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
           })}
         </div>
       </div>
+      )}
 
       {/* VIEW 1: Full Month Visual Calendar */}
       {viewMode === 'full_calendar' ? (

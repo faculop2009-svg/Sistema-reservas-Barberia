@@ -1,5 +1,22 @@
 import React, { useState } from 'react';
-import { Settings, Save, RotateCcw, Check, AlertCircle, FolderDown, Lock, KeyRound } from 'lucide-react';
+import {
+  Settings,
+  Save,
+  RotateCcw,
+  Check,
+  AlertCircle,
+  FolderDown,
+  Lock,
+  KeyRound,
+  SlidersHorizontal,
+  CreditCard,
+  Package,
+  Star,
+  Calendar,
+  Search,
+  Users,
+  Coffee,
+} from 'lucide-react';
 import { BusinessSettings } from '../types.ts';
 import { DEFAULT_SETTINGS } from '../data/defaults.ts';
 
@@ -232,6 +249,163 @@ export const ShopSettingsModal: React.FC<ShopSettingsModalProps> = ({
               onChange={(e) => setFormData({ ...formData, reminderTemplate: e.target.value })}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 font-mono text-xs focus:outline-none focus:border-amber-500 leading-relaxed"
             />
+          </div>
+
+          {/* Modules & Feature Toggles Section */}
+          <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-zinc-100 flex items-center gap-2">
+                    <span>Módulos y Opciones del Local</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Personalización
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-zinc-400">
+                    Desmarca las opciones que no utilices para ocultarlas de la web de tus clientes.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {/* Toggle Planes Mensuales */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enableMonthlyPlans !== false}
+                  onChange={(e) => setFormData({ ...formData, enableMonthlyPlans: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <CreditCard className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Planes Mensuales 4x3</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Suscripciones con débito automático. Si lo apagas, se oculta del catálogo.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Productos */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enableProducts !== false}
+                  onChange={(e) => setFormData({ ...formData, enableProducts: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Package className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Stock & Tienda de Productos</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Venta de ceras, aceites y sugerencias tras reservar turnos.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Reseñas */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enableReviews !== false}
+                  onChange={(e) => setFormData({ ...formData, enableReviews: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Star className="w-3.5 h-3.5 text-yellow-400" />
+                    <span>Muro de Reseñas</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Calificaciones de estrellas y opiniones de clientes en la web.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Calendario Público */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enablePublicCalendar !== false}
+                  onChange={(e) => setFormData({ ...formData, enablePublicCalendar: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Calendario Visual Público</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Grilla interactiva mensual de disponibilidad para clientes.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Mi Turno */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enableLookupMyTurn !== false}
+                  onChange={(e) => setFormData({ ...formData, enableLookupMyTurn: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Search className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Buscador "Mi Turno"</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Consulta rápida de turnos por código o celular para clientes.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Selección de Barbero */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.enableBarberSelection !== false}
+                  onChange={(e) => setFormData({ ...formData, enableBarberSelection: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Users className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Selección de Barbero</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Desactívalo si tienes 1 solo barbero para agendar en 1 clic.
+                  </p>
+                </div>
+              </label>
+
+              {/* Toggle Almuerzo */}
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={formData.enableLunchBreak !== false}
+                  onChange={(e) => setFormData({ ...formData, enableLunchBreak: e.target.checked })}
+                  className="mt-0.5 rounded border-zinc-700 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
+                    <Coffee className="w-3.5 h-3.5 text-orange-400" />
+                    <span>Pausa de Almuerzo en Turnos</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 leading-tight">
+                    Bloquea los horarios de {formData.lunchBreakStart || '13:30'} a {formData.lunchBreakEnd || '14:30'}.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Security & Access PIN Section */}

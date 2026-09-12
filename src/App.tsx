@@ -362,6 +362,22 @@ export default function App() {
         return;
       }
     }
+    if (view === 'products' && settings.enableProducts === false) {
+      setActiveView('book');
+      return;
+    }
+    if (view === 'calendar' && settings.enablePublicCalendar === false) {
+      setActiveView('book');
+      return;
+    }
+    if (view === 'reviews' && settings.enableReviews === false) {
+      setActiveView('book');
+      return;
+    }
+    if (view === 'my-turns' && settings.enableLookupMyTurn === false) {
+      setActiveView('book');
+      return;
+    }
     setActiveView(view);
   };
 
@@ -573,24 +589,26 @@ export default function App() {
                   Selecciona tu corte o barba, el profesional y el horario disponible. Recibirás confirmación y recordatorio automático por WhatsApp.
                 </p>
 
-                {/* Trust Rating Badge */}
-                <div className="pt-2 flex items-center gap-2 justify-center sm:justify-start">
-                  <button
-                    type="button"
-                    onClick={() => setActiveView('reviews')}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/40 text-xs text-zinc-300 transition-all group"
-                  >
-                    <div className="flex items-center gap-0.5 text-amber-400">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      <span className="font-bold text-zinc-100">{reviewsAverage.toFixed(1)}</span>
-                    </div>
-                    <span className="text-zinc-500">•</span>
-                    <span className="text-zinc-400 group-hover:text-amber-400 transition-colors">
-                      {reviews.length} opiniones verificadas
-                    </span>
-                    <span className="text-amber-500 font-semibold underline text-[11px]">Ver Reseñas</span>
-                  </button>
-                </div>
+                {/* Trust Rating Badge (Shown only if reviews are enabled) */}
+                {settings.enableReviews !== false && (
+                  <div className="pt-2 flex items-center gap-2 justify-center sm:justify-start">
+                    <button
+                      type="button"
+                      onClick={() => setActiveView('reviews')}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/40 text-xs text-zinc-300 transition-all group"
+                    >
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span className="font-bold text-zinc-100">{reviewsAverage.toFixed(1)}</span>
+                      </div>
+                      <span className="text-zinc-500">•</span>
+                      <span className="text-zinc-400 group-hover:text-amber-400 transition-colors">
+                        {reviews.length} opiniones verificadas
+                      </span>
+                      <span className="text-amber-500 font-semibold underline text-[11px]">Ver Reseñas</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-3 bg-zinc-950/80 border border-zinc-800 px-4 py-3 rounded-2xl text-xs text-zinc-300 flex-shrink-0 shadow-md">
@@ -628,6 +646,8 @@ export default function App() {
               onSelectBarber={(id) => setSelectedBarberId(id)}
               selectedServiceId={selectedService.id}
               services={services}
+              enableBarberSelection={settings.enableBarberSelection !== false}
+              enablePublicCalendar={settings.enablePublicCalendar !== false}
             />
 
             {/* Step 3: Client Info & Submit */}
@@ -744,6 +764,7 @@ export default function App() {
               services={services}
               barbers={barbers}
               onOpenSettings={handleRequestSettings}
+              onSaveSettings={handleSaveSettings}
               onBarbersChange={handleBarbersChange}
               onServicesChange={handleServicesChange}
               onLockPanel={handleLockAdminPanel}

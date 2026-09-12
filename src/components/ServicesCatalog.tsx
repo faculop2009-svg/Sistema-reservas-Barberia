@@ -263,39 +263,41 @@ export const ServicesCatalog: React.FC<ServicesCatalogProps> = ({
         </div>
       )}
 
-      {/* Catalog & Plans Mode Switcher */}
-      <div className="flex items-center gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-full sm:w-auto shadow-md">
-        <button
-          type="button"
-          onClick={() => setCatalogMode('services')}
-          className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-            catalogMode === 'services'
-              ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-          }`}
-        >
-          <Scissors className="w-4 h-4" />
-          <span>Servicios Individuales</span>
-        </button>
+      {/* Catalog & Plans Mode Switcher (Hidden if monthly plans are disabled) */}
+      {settings.enableMonthlyPlans !== false ? (
+        <div className="flex items-center gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-full sm:w-auto shadow-md">
+          <button
+            type="button"
+            onClick={() => setCatalogMode('services')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              catalogMode === 'services'
+                ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+            }`}
+          >
+            <Scissors className="w-4 h-4" />
+            <span>Servicios Individuales</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setCatalogMode('plans')}
-          className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
-            catalogMode === 'plans'
-              ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-          }`}
-        >
-          <CreditCard className="w-4 h-4 text-emerald-400" />
-          <span>Planes Mensuales 4x3</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-zinc-950 text-[10px] font-extrabold uppercase ml-0.5">
-            Paga 3 Lleva 4
-          </span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setCatalogMode('plans')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
+              catalogMode === 'plans'
+                ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+            }`}
+          >
+            <CreditCard className="w-4 h-4 text-emerald-400" />
+            <span>Planes Mensuales 4x3</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-zinc-950 text-[10px] font-extrabold uppercase ml-0.5">
+              Paga 3 Lleva 4
+            </span>
+          </button>
+        </div>
+      ) : null}
 
-      {catalogMode === 'plans' ? (
+      {catalogMode === 'plans' && settings.enableMonthlyPlans !== false ? (
         <MonthlyPlansSection
           settings={settings}
           isAdmin={isAdmin}

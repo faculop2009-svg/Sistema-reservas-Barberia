@@ -248,13 +248,15 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({
           {/* ========================================================= */}
           {/* SPECIAL AD: PRODUCTS SHOWCASE POST-BOOKING               */}
           {/* ========================================================= */}
-          <PostBookingProductsAd
-            appointment={appointment}
-            settings={settings}
-            selectedProducts={selectedProducts}
-            onToggleProduct={handleToggleProduct}
-            onNavigateToProducts={onNavigateToProducts}
-          />
+          {settings.enableProducts !== false && (
+            <PostBookingProductsAd
+              appointment={appointment}
+              settings={settings}
+              selectedProducts={selectedProducts}
+              onToggleProduct={handleToggleProduct}
+              onNavigateToProducts={onNavigateToProducts}
+            />
+          )}
 
           {/* Secondary Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">

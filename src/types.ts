@@ -98,6 +98,16 @@ export interface BusinessSettings {
   currencySymbol?: string; // e.g. "$"
   instagram?: string; // e.g. "@barberiavintage"
   timezone?: string; // e.g. "America/Argentina/Cordoba"
+  whatsappNumber?: string;
+
+  // Módulos y opciones activas del local (configurables desde el panel admin)
+  enableMonthlyPlans?: boolean; // Planes 4x3 con débito automático (default true)
+  enableProducts?: boolean;     // Tienda y stock de productos (default true)
+  enableReviews?: boolean;      // Reseñas y muro de calificaciones (default true)
+  enablePublicCalendar?: boolean; // Calendario visual público de disponibilidad (default true)
+  enableLookupMyTurn?: boolean; // Buscador "Mi Turno" para clientes (default true)
+  enableBarberSelection?: boolean; // Elección de barbero por el cliente vs asignación automática (default true)
+  enableLunchBreak?: boolean;   // Pausa de almuerzo en la grilla de turnos (default true)
 }
 
 export interface BookingPayload {

@@ -119,60 +119,68 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Catálogo & Planes</span>
+              <span>{settings.enableMonthlyPlans !== false ? 'Catálogo & Planes' : 'Catálogo'}</span>
             </button>
 
-            <button
-              id="nav-btn-products"
-              onClick={() => setActiveView('products')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activeView === 'products'
-                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
-              }`}
-            >
-              <Package className="w-3.5 h-3.5" />
-              <span>Productos</span>
-            </button>
+            {settings.enableProducts !== false && (
+              <button
+                id="nav-btn-products"
+                onClick={() => setActiveView('products')}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                  activeView === 'products'
+                    ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                    : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>Productos</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-calendar"
-              onClick={() => setActiveView('calendar')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activeView === 'calendar'
-                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
-              }`}
-            >
-              <CalendarDays className="w-3.5 h-3.5" />
-              <span>Disponibilidad</span>
-            </button>
+            {settings.enablePublicCalendar !== false && (
+              <button
+                id="nav-btn-calendar"
+                onClick={() => setActiveView('calendar')}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                  activeView === 'calendar'
+                    ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                    : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+                }`}
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span>Disponibilidad</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-reviews"
-              onClick={() => setActiveView('reviews')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activeView === 'reviews'
-                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
-              }`}
-            >
-              <Star className="w-3.5 h-3.5" />
-              <span>Reseñas</span>
-            </button>
+            {settings.enableReviews !== false && (
+              <button
+                id="nav-btn-reviews"
+                onClick={() => setActiveView('reviews')}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                  activeView === 'reviews'
+                    ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                    : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5" />
+                <span>Reseñas</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-my-turns"
-              onClick={() => setActiveView('my-turns')}
-              className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activeView === 'my-turns'
-                  ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                  : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Mi Turno</span>
-            </button>
+            {settings.enableLookupMyTurn !== false && (
+              <button
+                id="nav-btn-my-turns"
+                onClick={() => setActiveView('my-turns')}
+                className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                  activeView === 'my-turns'
+                    ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
+                    : 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800/60'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Mi Turno</span>
+              </button>
+            )}
 
             <div className="h-5 w-px bg-zinc-800 mx-1" />
 
@@ -250,60 +258,68 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Catálogo & Planes</span>
+              <span>{settings.enableMonthlyPlans !== false ? 'Catálogo & Planes' : 'Catálogo'}</span>
             </button>
 
-            <button
-              id="nav-btn-products-mobile"
-              onClick={() => setActiveView('products')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                activeView === 'products'
-                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
-                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
-              }`}
-            >
-              <Package className="w-3.5 h-3.5" />
-              <span>Productos</span>
-            </button>
+            {settings.enableProducts !== false && (
+              <button
+                id="nav-btn-products-mobile"
+                onClick={() => setActiveView('products')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  activeView === 'products'
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                    : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>Productos</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-calendar-mobile"
-              onClick={() => setActiveView('calendar')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                activeView === 'calendar'
-                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
-                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
-              }`}
-            >
-              <CalendarDays className="w-3.5 h-3.5" />
-              <span>Disponibilidad</span>
-            </button>
+            {settings.enablePublicCalendar !== false && (
+              <button
+                id="nav-btn-calendar-mobile"
+                onClick={() => setActiveView('calendar')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  activeView === 'calendar'
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                    : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+                }`}
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+                <span>Disponibilidad</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-reviews-mobile"
-              onClick={() => setActiveView('reviews')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                activeView === 'reviews'
-                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
-                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
-              }`}
-            >
-              <Star className="w-3.5 h-3.5" />
-              <span>Reseñas</span>
-            </button>
+            {settings.enableReviews !== false && (
+              <button
+                id="nav-btn-reviews-mobile"
+                onClick={() => setActiveView('reviews')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  activeView === 'reviews'
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                    : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5" />
+                <span>Reseñas</span>
+              </button>
+            )}
 
-            <button
-              id="nav-btn-my-turns-mobile"
-              onClick={() => setActiveView('my-turns')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                activeView === 'my-turns'
-                  ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
-                  : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Mi Turno</span>
-            </button>
+            {settings.enableLookupMyTurn !== false && (
+              <button
+                id="nav-btn-my-turns-mobile"
+                onClick={() => setActiveView('my-turns')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  activeView === 'my-turns'
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm shadow-amber-500/20'
+                    : 'bg-zinc-900/80 border border-zinc-800 text-zinc-300'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Mi Turno</span>
+              </button>
+            )}
 
             <button
               id="nav-btn-admin-tab-mobile"
